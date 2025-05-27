@@ -100,7 +100,7 @@ function createProductCard(item) {
   card.innerHTML = `
     <div class="image-container">
       <img src="${item.imagem}" alt="${item.nome}" loading="lazy" class="product-image" 
-           onerror="this.src='https://via.placeholder.com/300x400?text=Imagem+Indisponível'">
+           onerror="this.src='https://placehold.co/300x400?text=Imagem+Indisponível'">
     </div>
     <h3>${formatText(item.nome)}</h3>
   `;
@@ -171,8 +171,9 @@ function openProductModal(product) {
   modalProductName.textContent = formatText(product.nome);
   modalMainImage.src = product.imagem;
   modalMainImage.onerror = function () {
-    this.src = "https://via.placeholder.com/600x800?text=Imagem+Indisponível";
-  };
+  this.src = "https://placehold.co/600x800?text=Imagem+Indisponível";
+};
+
 
 
   modalColorSelect.innerHTML = "";
@@ -211,8 +212,9 @@ function openProductModal(product) {
     thumbnailImg.src = img;
     thumbnailImg.alt = `Thumbnail ${index + 1}`;
     thumbnailImg.onerror = function () {
-      this.src = "https://via.placeholder.com/100x100?text=Imagem+Indisponível";
-    };
+  this.src = "https://placehold.co/100x100?text=Indisponível";
+};
+
 
     thumbnail.appendChild(thumbnailImg);
 
