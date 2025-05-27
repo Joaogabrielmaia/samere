@@ -337,7 +337,7 @@ function sendWhatsAppOrder() {
   message += `\nTotal de itens: ${totalItems}`;
 
   const encodedMessage = encodeURIComponent(message);
-  const phoneNumber = "31993329508";
+  const phoneNumber = "32998301714";
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
   window.open(whatsappUrl, "_blank");
