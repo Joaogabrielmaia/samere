@@ -234,6 +234,26 @@ function openProductModal(product) {
   });
 }
 
+const exitFullscreenBtn = document.getElementById("exit-fullscreen-btn");
+
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) {
+    exitFullscreenBtn.style.display = "block";
+  } else {
+    exitFullscreenBtn.style.display = "none";
+  }
+});
+
+exitFullscreenBtn.addEventListener("click", () => {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) { 
+    document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) { 
+    document.msExitFullscreen();
+  }
+});
+
 
 
 function addToCart(item) {
