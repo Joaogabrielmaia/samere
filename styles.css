@@ -225,7 +225,7 @@ body {
 /* Cards de Produtos */
 .cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Reduzido de 280px para 200px */
   gap: 30px;
   padding: 0 15px;
 }
@@ -836,7 +836,12 @@ body {
   }
   
   .cards-container {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px; /* Espaçamento menor para telas pequenas */
+  }
+  
+  .card {
+    min-height: 350px; /* Ajuste opcional da altura */
   }
   
   .modal-body {
