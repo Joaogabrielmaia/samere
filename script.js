@@ -337,7 +337,7 @@ function sendWhatsAppOrder() {
   message += `\nTotal de itens: ${totalItems}`;
 
   const encodedMessage = encodeURIComponent(message);
-  const phoneNumber = "31975779600";
+  const phoneNumber = "31993329508";
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
   window.open(whatsappUrl, "_blank");
@@ -485,6 +485,11 @@ function showError(message) {
 cartButton.addEventListener("click", () => {
   cartSidebar.classList.remove("hidden");
   document.body.style.overflow = "hidden";
+});
+
+document.getElementById('whatsapp-button').addEventListener('click', function(e) {
+    e.preventDefault();
+    sendWhatsAppOrder();
 });
 
 closeCartButton.addEventListener("click", () => {
