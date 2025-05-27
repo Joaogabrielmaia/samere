@@ -166,14 +166,11 @@ function createProductCard(item) {
 function openProductModal(product) {
   currentProduct = product;
 
-
   modalProductName.textContent = formatText(product.nome);
   modalMainImage.src = product.imagem;
   modalMainImage.onerror = function () {
-  this.src = "https://placehold.co/600x800?text=Imagem+Indisponível";
-};
-
-
+    this.src = "https://placehold.co/600x800?text=Imagem+Indisponível";
+  };
 
   modalColorSelect.innerHTML = "";
   product.cor.split(",").forEach((cor) => {
@@ -191,14 +188,12 @@ function openProductModal(product) {
     modalSizeSelect.appendChild(option);
   });
 
-
   thumbnailsContainer.innerHTML = "";
 
   let additionalImages = [];
   if (product["outras-duas-fotos"] && product["outras-duas-fotos"].trim() !== "") {
     additionalImages = product["outras-duas-fotos"].split(",").map((img) => img.trim());
   }
-
 
   [product.imagem, ...additionalImages].forEach((img, index) => {
     if (!img || img.trim() === "") return;
@@ -211,9 +206,8 @@ function openProductModal(product) {
     thumbnailImg.src = img;
     thumbnailImg.alt = `Thumbnail ${index + 1}`;
     thumbnailImg.onerror = function () {
-  this.src = "https://placehold.co/100x100?text=Indisponível";
-};
-
+      this.src = "https://placehold.co/100x100?text=Indisponível";
+    };
 
     thumbnail.appendChild(thumbnailImg);
 
@@ -226,10 +220,20 @@ function openProductModal(product) {
     thumbnailsContainer.appendChild(thumbnail);
   });
 
-
   productModal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
+
+  modalMainImage.addEventListener("click", () => {
+    if (modalMainImage.requestFullscreen) {
+      modalMainImage.requestFullscreen();
+    } else if (modalMainImage.webkitRequestFullscreen) {
+      modalMainImage.webkitRequestFullscreen();
+    } else if (modalMainImage.msRequestFullscreen) {
+      modalMainImage.msRequestFullscreen();
+    }
+  });
 }
+
 
 
 function addToCart(item) {
