@@ -1,17 +1,17 @@
 const apiUrl = "https://sheetdb.io/api/v1/5eqyomzhep4j3";
 
-// Elementos dos containers de produtos
+
 const algodaoContainer = document.getElementById("algodao-container");
 const pimaContainer = document.getElementById("pima-container");
 
-// Elementos do carrinho
+
 const cartButton = document.getElementById("cart-button");
 const cartSidebar = document.getElementById("cart-sidebar");
 const closeCartButton = document.getElementById("close-cart");
 const cartItemsContainer = document.getElementById("cart-items");
 const cartCount = document.getElementById("cart-count");
 
-// Elementos do modal de produto
+
 const productModal = document.getElementById("product-modal");
 const closeModal = document.querySelector(".close-modal");
 const modalMainImage = document.getElementById("modal-main-image");
@@ -21,12 +21,12 @@ const modalColorSelect = document.getElementById("modal-color-select");
 const modalSizeSelect = document.getElementById("modal-size-select");
 const modalAddToCart = document.getElementById("modal-add-to-cart");
 
-// Variáveis de estado
+
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let currentProduct = null;
-let allProducts = []; // Armazenará todos os produtos
+let allProducts = [];
 
-// Função para formatar texto (capitalize)
+
 function formatText(text) {
   if (!text) return "";
   return text
@@ -38,12 +38,12 @@ function formatText(text) {
     .replace(/Cotton Pima/gi, "Cotton Pima");
 }
 
-// Função para salvar o carrinho no localStorage
+
 function saveCart() {
   localStorage.setItem("cart", JSON.stringify(cart));
 }
 
-// Carregar produtos da API
+
 function loadProducts() {
   fetch(apiUrl)
     .then((response) => {
@@ -68,15 +68,15 @@ function loadProducts() {
     });
 }
 
-// Criar card de produto
+
 function createProductCard(item) {
   const card = document.createElement("div");
   card.classList.add("card");
 
-  // ADICIONA DATA-ATTRIBUTE PARA MALHA
+
   card.dataset.malha = item.malha.toLowerCase().includes("pima") ? "pima" : "algodao";
 
-  // Criar select para cores
+
   const corSelect = document.createElement("select");
   corSelect.id = `cor-${item.id}`;
   corSelect.classList.add("product-select");
@@ -87,7 +87,7 @@ function createProductCard(item) {
     corSelect.appendChild(option);
   });
 
-  // Criar select para tamanhos
+
   const tamanhoSelect = document.createElement("select");
   tamanhoSelect.id = `tamanho-${item.id}`;
   tamanhoSelect.classList.add("product-select");
@@ -98,7 +98,7 @@ function createProductCard(item) {
     tamanhoSelect.appendChild(option);
   });
 
-  // Construir card com tratamento de erro para imagens
+
   card.innerHTML = `
     <div class="image-container">
       <img src="${item.imagem}" alt="${item.nome}" loading="lazy" class="product-image" 
@@ -107,7 +107,7 @@ function createProductCard(item) {
     <h3>${formatText(item.nome)}</h3>
   `;
 
-  // Adicionar selects com labels
+
   const selectContainer = document.createElement("div");
   selectContainer.classList.add("select-container");
 
@@ -125,7 +125,6 @@ function createProductCard(item) {
   selectContainer.appendChild(labelTamanho);
   card.appendChild(selectContainer);
 
-  // Botão de adicionar ao carrinho (no card)
   const addButton = document.createElement("button");
   addButton.classList.add("add-to-cart");
   addButton.textContent = "Adicionar ao Carrinho";
@@ -144,13 +143,13 @@ function createProductCard(item) {
       cor: corSelect.value,
       tamanho: tamanhoSelect.value,
       imagem: item.imagem,
-      malha: malhaType // Usa o tipo da malha do data-attribute
+      malha: malhaType
     });
   });
 
   card.appendChild(addButton);
 
-  // Adicionar evento de clique na imagem
+
   const productImage = card.querySelector(".product-image");
   productImage.style.cursor = "pointer";
 
@@ -159,7 +158,6 @@ function createProductCard(item) {
     openProductModal(item);
   });
 
-  // Adicionar ao container correto
   if (item.malha.toLowerCase().includes("pima")) {
     pimaContainer.appendChild(card);
   } else {
@@ -167,18 +165,18 @@ function createProductCard(item) {
   }
 }
 
-// Função para abrir o modal de produto
+
 function openProductModal(product) {
   currentProduct = product;
 
-  // Preencher informações básicas
+
   modalProductName.textContent = formatText(product.nome);
   modalMainImage.src = product.imagem;
   modalMainImage.onerror = function () {
     this.src = "https://via.placeholder.com/600x800?text=Imagem+Indisponível";
   };
 
-  // Preencher selects
+
   modalColorSelect.innerHTML = "";
   product.cor.split(",").forEach((cor) => {
     const option = document.createElement("option");
@@ -195,7 +193,7 @@ function openProductModal(product) {
     modalSizeSelect.appendChild(option);
   });
 
-  // Preencher thumbnails
+
   thumbnailsContainer.innerHTML = "";
 
   let additionalImages = [];
@@ -203,7 +201,7 @@ function openProductModal(product) {
     additionalImages = product["outras-duas-fotos"].split(",").map((img) => img.trim());
   }
 
-  // Adiciona a imagem principal como primeira opção
+
   [product.imagem, ...additionalImages].forEach((img, index) => {
     if (!img || img.trim() === "") return;
 
@@ -229,28 +227,28 @@ function openProductModal(product) {
     thumbnailsContainer.appendChild(thumbnail);
   });
 
-  // Mostrar modal
+
   productModal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
 
-// Função adicionar ao carrinho
+
 function addToCart(item) {
-  // Verifica se já existe um item com MESMA MARCA, COR, TAMANHO E MALHA
+
   const existingItemIndex = cart.findIndex(
-    cartItem => 
-      cartItem.nome === item.nome && // Nome da marca (Reserva, Calvin Klein etc.)
+    cartItem =>
+      cartItem.nome === item.nome &&
       cartItem.cor === item.cor &&
       cartItem.tamanho === item.tamanho &&
-      cartItem.malha === item.malha // Tipo de malha (100% Algodão ou Cotton Pima)
+      cartItem.malha === item.malha
   );
 
   if (existingItemIndex >= 0) {
-    // Se já existe, aumenta a quantidade
+
     cart[existingItemIndex].quantidade += 1;
     showNotification(`+1 ${formatText(item.nome)} no carrinho`);
   } else {
-    // Se não existe, adiciona como novo item
+
     const newItem = {
       ...item,
       quantidade: 1,
@@ -263,29 +261,29 @@ function addToCart(item) {
   updateCart();
 }
 
-// Atualizar carrinho
+
 function updateCart() {
-    if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<p class="empty-cart">Seu carrinho está vazio</p>';
-        cartCount.textContent = "0";
-        document.getElementById("total-items").textContent = "Total de itens: 0";
-        document.getElementById("whatsapp-button").disabled = true;
-        document.getElementById("cart-message").style.display = "none";
-        return;
-    }
+  if (cart.length === 0) {
+    cartItemsContainer.innerHTML = '<p class="empty-cart">Seu carrinho está vazio</p>';
+    cartCount.textContent = "0";
+    document.getElementById("total-items").textContent = "Total de itens: 0";
+    document.getElementById("whatsapp-button").disabled = true;
+    document.getElementById("cart-message").style.display = "none";
+    return;
+  }
 
-    // Limpa o container antes de recriar os itens
-    cartItemsContainer.innerHTML = '';
 
-    // Recria todos os itens do carrinho
-    cart.forEach((item, index) => {
-        const cartItem = document.createElement("div");
-        cartItem.classList.add("cart-item");
-        cartItem.dataset.index = index;
+  cartItemsContainer.innerHTML = '';
 
-        const malhaText = item.malha === "Cotton Pima" ? "Cotton Pima" : "100% Algodão";
 
-        cartItem.innerHTML = `
+  cart.forEach((item, index) => {
+    const cartItem = document.createElement("div");
+    cartItem.classList.add("cart-item");
+    cartItem.dataset.index = index;
+
+    const malhaText = item.malha === "Cotton Pima" ? "Cotton Pima" : "100% Algodão";
+
+    cartItem.innerHTML = `
     <div class="cart-item-image">
         <img src="${item.imagem}" alt="${item.nome}" loading="lazy">
     </div>
@@ -309,14 +307,14 @@ function updateCart() {
     </button>
 `;
 
-        cartItemsContainer.appendChild(cartItem);
-    });
+    cartItemsContainer.appendChild(cartItem);
+  });
 
-    // Configura os eventos após criar os itens
-    setupCartItemEvents();
 
-    // Atualiza totais
-    updateCartTotals();
+  setupCartItemEvents();
+
+
+  updateCartTotals();
 }
 
 function sendWhatsAppOrder() {
@@ -343,91 +341,89 @@ function sendWhatsAppOrder() {
   window.open(whatsappUrl, "_blank");
 }
 
-// Configurar eventos dos itens do carrinho
+
 function setupCartItemEvents() {
-    // Botão de remover item
-    document.querySelectorAll(".remove-item").forEach((button) => {
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const index = e.currentTarget.getAttribute("data-index");
-            removeFromCart(index);
-        });
-    });
 
-    // Botão de diminuir quantidade
-    document.querySelectorAll(".decrease-quantity").forEach((button) => {
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const index = e.currentTarget.getAttribute("data-index");
-            updateQuantity(index, -1); // Diminui a quantidade em 1
-        });
+  document.querySelectorAll(".remove-item").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const index = e.currentTarget.getAttribute("data-index");
+      removeFromCart(index);
     });
+  });
 
-    // Botão de aumentar quantidade
-    document.querySelectorAll(".increase-quantity").forEach((button) => {
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const index = e.currentTarget.getAttribute("data-index");
-            updateQuantity(index, 1); // Aumenta a quantidade em 1
-        });
+
+  document.querySelectorAll(".decrease-quantity").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const index = e.currentTarget.getAttribute("data-index");
+      updateQuantity(index, -1);
     });
+  });
+
+
+  document.querySelectorAll(".increase-quantity").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const index = e.currentTarget.getAttribute("data-index");
+      updateQuantity(index, 1);
+    });
+  });
 }
 
 
-// Atualizar quantidade de um item
+
 function updateQuantity(index, change) {
-    // Converte o índice para número (pode vir como string do data-attribute)
-    index = parseInt(index);
-    
-    // Verifica se o índice é válido
-    if (isNaN(index) || index < 0 || index >= cart.length) {
-        console.error('Índice inválido:', index);
-        return;
-    }
 
-    // Garante que a quantidade existe
-    if (!cart[index].quantidade) {
-        cart[index].quantidade = 1;
-    }
+  index = parseInt(index);
 
-    const newQuantity = cart[index].quantidade + change;
 
-    // Define a quantidade mínima como 1
-    cart[index].quantidade = Math.max(1, newQuantity);
-    
-    saveCart();
-    
-    // Atualiza a quantidade no DOM
-    const quantityElement = document.querySelector(`.cart-item[data-index="${index}"] .quantity`);
-    if (quantityElement) {
-        quantityElement.textContent = cart[index].quantidade;
-    }
-    
-    // Atualiza totais
-    updateCartTotals();
+  if (isNaN(index) || index < 0 || index >= cart.length) {
+    console.error('Índice inválido:', index);
+    return;
+  }
+
+
+  if (!cart[index].quantidade) {
+    cart[index].quantidade = 1;
+  }
+
+  const newQuantity = cart[index].quantidade + change;
+
+
+  cart[index].quantidade = Math.max(1, newQuantity);
+
+  saveCart();
+
+
+  const quantityElement = document.querySelector(`.cart-item[data-index="${index}"] .quantity`);
+  if (quantityElement) {
+    quantityElement.textContent = cart[index].quantidade;
+  }
+
+
+  updateCartTotals();
 }
 
 
-// Função separada para atualizar apenas os totais
 function updateCartTotals() {
-    const totalItems = cart.reduce((total, item) => total + (item.quantidade || 1), 0);
-    cartCount.textContent = totalItems.toString();
-    document.getElementById("total-items").textContent = `Total de itens: ${totalItems}`;
+  const totalItems = cart.reduce((total, item) => total + (item.quantidade || 1), 0);
+  cartCount.textContent = totalItems.toString();
+  document.getElementById("total-items").textContent = `Total de itens: ${totalItems}`;
 
-    const whatsappButton = document.getElementById("whatsapp-button");
-    whatsappButton.disabled = totalItems < 5;
+  const whatsappButton = document.getElementById("whatsapp-button");
+  whatsappButton.disabled = totalItems < 5;
 
-    const cartMessage = document.getElementById("cart-message");
-    if (totalItems < 5) {
-        const itemsNeeded = 5 - totalItems;
-        cartMessage.textContent = `Você adicionou ${totalItems} ${totalItems === 1 ? 'item' : 'itens'}. Adicione mais ${itemsNeeded} para finalizar o pedido.`;
-        cartMessage.style.display = "block";
-    } else {
-        cartMessage.style.display = "none";
-    }
+  const cartMessage = document.getElementById("cart-message");
+  if (totalItems < 5) {
+    const itemsNeeded = 5 - totalItems;
+    cartMessage.textContent = `Você adicionou ${totalItems} ${totalItems === 1 ? 'item' : 'itens'}. Adicione mais ${itemsNeeded} para finalizar o pedido.`;
+    cartMessage.style.display = "block";
+  } else {
+    cartMessage.style.display = "none";
+  }
 }
 
-// Remover item do carrinho
 function removeFromCart(index) {
   const removedItem = cart[index];
   cart.splice(index, 1);
@@ -436,7 +432,6 @@ function removeFromCart(index) {
   showNotification(`${formatText(removedItem.nome)} removido do carrinho`);
 }
 
-// Mostrar notificação
 function showNotification(message) {
   const notification = document.createElement("div");
   notification.classList.add("notification");
@@ -455,7 +450,6 @@ function showNotification(message) {
   }, 3000);
 }
 
-// Mostrar erro
 function showError(message) {
   const error = document.createElement("div");
   error.classList.add("error-message");
@@ -481,15 +475,15 @@ function showError(message) {
   }, 5000);
 }
 
-// Event listeners
+
 cartButton.addEventListener("click", () => {
   cartSidebar.classList.remove("hidden");
   document.body.style.overflow = "hidden";
 });
 
-document.getElementById('whatsapp-button').addEventListener('click', function(e) {
-    e.preventDefault();
-    sendWhatsAppOrder();
+document.getElementById('whatsapp-button').addEventListener('click', function (e) {
+  e.preventDefault();
+  sendWhatsAppOrder();
 });
 
 closeCartButton.addEventListener("click", () => {
@@ -497,7 +491,6 @@ closeCartButton.addEventListener("click", () => {
   document.body.style.overflow = "auto";
 });
 
-// Fechar carrinho ao clicar fora
 document.addEventListener("click", (event) => {
   if (!cartSidebar.contains(event.target) && event.target !== cartButton) {
     cartSidebar.classList.add("hidden");
@@ -505,13 +498,11 @@ document.addEventListener("click", (event) => {
   }
 });
 
-// Fechar modal
 closeModal.addEventListener("click", () => {
   productModal.classList.add("hidden");
   document.body.style.overflow = "auto";
 });
 
-// Adicionar ao carrinho do modal
 modalAddToCart.addEventListener("click", () => {
   if (!currentProduct) return;
 
@@ -531,7 +522,6 @@ modalAddToCart.addEventListener("click", () => {
   document.body.style.overflow = "auto";
 });
 
-// Fechar modal ao clicar fora
 productModal.addEventListener("click", (e) => {
   if (e.target === productModal) {
     productModal.classList.add("hidden");
@@ -539,99 +529,94 @@ productModal.addEventListener("click", (e) => {
   }
 });
 
-// Inicializar
-document.addEventListener('DOMContentLoaded', function() {
-            // Atualizar ano no footer
-            document.getElementById('year').textContent = new Date().getFullYear();
-            
-            // Botão de voltar ao topo
-            const backToTopButton = document.getElementById('back-to-top');
-            
-            window.addEventListener('scroll', () => {
-                if (window.pageYOffset > 300) {
-                    backToTopButton.classList.add('visible');
-                } else {
-                    backToTopButton.classList.remove('visible');
-                }
-            });
-            
-            backToTopButton.addEventListener('click', () => {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            });
-            
-            // Filtros de produtos
-            const malhaFilter = document.getElementById('malha-filter');
-            const searchFilter = document.getElementById('search-filter');
-            
-            function filterProducts() {
-                const selectedMalha = malhaFilter.value;
-                const searchTerm = searchFilter.value.toLowerCase();
-                
-                // Esconde todas as seções primeiro
-                document.getElementById('algodao-section').style.display = 'none';
-                document.getElementById('algodao-container').style.display = 'none';
-                document.getElementById('pima-section').style.display = 'none';
-                document.getElementById('pima-container').style.display = 'none';
-                
-                // Filtra por tipo de malha
-                if (selectedMalha === 'all') {
-                    document.getElementById('algodao-section').style.display = 'block';
-                    document.getElementById('algodao-container').style.display = 'grid';
-                    document.getElementById('pima-section').style.display = 'block';
-                    document.getElementById('pima-container').style.display = 'grid';
-                } else if (selectedMalha === 'algodao') {
-                    document.getElementById('algodao-section').style.display = 'block';
-                    document.getElementById('algodao-container').style.display = 'grid';
-                } else if (selectedMalha === 'pima') {
-                    document.getElementById('pima-section').style.display = 'block';
-                    document.getElementById('pima-container').style.display = 'grid';
-                }
-                
-                // Filtra por pesquisa de marca
-                const allCards = document.querySelectorAll('.card');
-                allCards.forEach(card => {
-                    const cardTitle = card.querySelector('h3').textContent.toLowerCase();
-                    const cardVisible = cardTitle.includes(searchTerm);
-                    
-                    card.style.display = cardVisible ? 'block' : 'none';
-                });
-                
-                // Se pesquisa ativa, mostra as seções mesmo que estejam vazias
-                if (searchTerm) {
-                    document.getElementById('algodao-section').style.display = 'block';
-                    document.getElementById('pima-section').style.display = 'block';
-                }
-            }
-            
-            malhaFilter.addEventListener('change', () => {
-                filterProducts();
-                
-                // Rolagem suave para a seção selecionada
-                if (malhaFilter.value === 'algodao') {
-                    document.getElementById('algodao-section').scrollIntoView({ behavior: 'smooth' });
-                } else if (malhaFilter.value === 'pima') {
-                    document.getElementById('pima-section').scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-            
-            searchFilter.addEventListener('input', filterProducts);
-            
-            // Carrega os produtos
-            if (typeof loadProducts === 'function') {
-                loadProducts();
-            }
-        });
 
-// Tornar a função removeFromCart global para ser chamada do HTML
+document.addEventListener('DOMContentLoaded', function () {
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+
+  const backToTopButton = document.getElementById('back-to-top');
+
+  window.addEventListener('scroll', () => {
+    if (window.pageYOffset > 300) {
+      backToTopButton.classList.add('visible');
+    } else {
+      backToTopButton.classList.remove('visible');
+    }
+  });
+
+  backToTopButton.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+
+
+  const malhaFilter = document.getElementById('malha-filter');
+  const searchFilter = document.getElementById('search-filter');
+
+  function filterProducts() {
+    const selectedMalha = malhaFilter.value;
+    const searchTerm = searchFilter.value.toLowerCase();
+
+
+    document.getElementById('algodao-section').style.display = 'none';
+    document.getElementById('algodao-container').style.display = 'none';
+    document.getElementById('pima-section').style.display = 'none';
+    document.getElementById('pima-container').style.display = 'none';
+
+
+    if (selectedMalha === 'all') {
+      document.getElementById('algodao-section').style.display = 'block';
+      document.getElementById('algodao-container').style.display = 'grid';
+      document.getElementById('pima-section').style.display = 'block';
+      document.getElementById('pima-container').style.display = 'grid';
+    } else if (selectedMalha === 'algodao') {
+      document.getElementById('algodao-section').style.display = 'block';
+      document.getElementById('algodao-container').style.display = 'grid';
+    } else if (selectedMalha === 'pima') {
+      document.getElementById('pima-section').style.display = 'block';
+      document.getElementById('pima-container').style.display = 'grid';
+    }
+
+
+    const allCards = document.querySelectorAll('.card');
+    allCards.forEach(card => {
+      const cardTitle = card.querySelector('h3').textContent.toLowerCase();
+      const cardVisible = cardTitle.includes(searchTerm);
+
+      card.style.display = cardVisible ? 'block' : 'none';
+    });
+
+
+    if (searchTerm) {
+      document.getElementById('algodao-section').style.display = 'block';
+      document.getElementById('pima-section').style.display = 'block';
+    }
+  }
+
+  malhaFilter.addEventListener('change', () => {
+    filterProducts();
+
+    if (malhaFilter.value === 'algodao') {
+      document.getElementById('algodao-section').scrollIntoView({ behavior: 'smooth' });
+    } else if (malhaFilter.value === 'pima') {
+      document.getElementById('pima-section').scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  searchFilter.addEventListener('input', filterProducts);
+
+  if (typeof loadProducts === 'function') {
+    loadProducts();
+  }
+});
+
 window.removeFromCart = removeFromCart;
 
-// Botão de voltar ao topo
 const backToTopButton = document.getElementById('back-to-top');
 
-// Mostrar/ocultar botão quando rolar a página
 window.addEventListener('scroll', () => {
   if (window.pageYOffset > 300) {
     backToTopButton.classList.add('visible');
@@ -640,7 +625,6 @@ window.addEventListener('scroll', () => {
   }
 });
 
-// Rolagem suave ao clicar no botão
 backToTopButton.addEventListener('click', () => {
   window.scrollTo({
     top: 0,

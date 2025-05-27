@@ -10,65 +10,66 @@
 </head>
 
 <body>
-    <!-- Navbar -->
+
     <nav class="navbar">
         <div class="navbar-container">
             <img src="logo.png" alt="Logo" class="logo">
         </div>
     </nav>
 
-    <!-- Seção do Vídeo -->
+
     <section class="video-section">
         <div class="container">
             <h1>Catálogo Digital</h1>
             <p>Veja o vídeo abaixo de como escolher seu pedido:</p>
 
             <div class="video-container">
-                <!-- Substitua pelo seu vídeo (YouTube, Vimeo ou arquivo local) -->
-                <iframe src="https://cdn.iframe.ly/api/iframe?url=https%3A%2F%2Fyoutu.be%2FWcaFKRPK0hs%3Fsi%3Dgan40auIRhdxtqtm&key=925108d922be940af814f71907a7df4b" frameborder="0"
-                    allowfullscreen></iframe>
+
+                <iframe
+                    src="https://cdn.iframe.ly/api/iframe?url=https%3A%2F%2Fyoutu.be%2FWcaFKRPK0hs%3Fsi%3Dgan40auIRhdxtqtm&key=925108d922be940af814f71907a7df4b"
+                    frameborder="0" allowfullscreen></iframe>
             </div>
         </div>
     </section>
 
-    <!-- Seção de Produtos -->
+
     <section class="products-section">
-    <h1>Catálogo de Produtos</h1>
+        <h1>Catálogo de Produtos</h1>
 
-    <!-- Filtros -->
-    <div class="filters-container">
-        <div class="filter-group">
-            <label for="malha-filter">Filtrar por Malha:</label>
-            <select id="malha-filter" class="filter-select">
-                <option value="all">Todas as Malhas</option>
-                <option value="algodao">100% Algodão</option>
-                <option value="pima">Cotton Pima</option>
-            </select>
+
+        <div class="filters-container">
+            <div class="filter-group">
+                <label for="malha-filter">Filtrar por Malha:</label>
+                <select id="malha-filter" class="filter-select">
+                    <option value="all">Todas as Malhas</option>
+                    <option value="algodao">100% Algodão</option>
+                    <option value="pima">Cotton Pima</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="search-filter">Pesquisar Marca:</label>
+                <input type="text" id="search-filter" class="search-input" placeholder="Digite o nome da marca...">
+            </div>
         </div>
-        
-        <div class="filter-group">
-            <label for="search-filter">Pesquisar Marca:</label>
-            <input type="text" id="search-filter" class="search-input" placeholder="Digite o nome da marca...">
-        </div>
-    </div>
 
-    <!-- Seção para 100% Algodão -->
-    <h2 id="algodao-section">Malha 100% Algodão 40.1 penteada menegotti</h2>
-    <div id="algodao-container" class="cards-container"></div>
 
-    <!-- Seção para Cotton Pima -->
-    <h2 id="pima-section">Malha Cotton Pima 40.1 com elastano</h2>
-    <div id="pima-container" class="cards-container"></div>
-</section>
+        <h2 id="algodao-section">Malha 100% Algodão 40.1 penteada menegotti</h2>
+        <div id="algodao-container" class="cards-container"></div>
 
-    <!-- Footer -->
+
+        <h2 id="pima-section">Malha Cotton Pima 40.1 com elastano</h2>
+        <div id="pima-container" class="cards-container"></div>
+    </section>
+
+
     <footer class="footer">
         <div class="container">
             <p>&copy; <span id="year"></span> Samere Atacado. Todos os direitos reservados</p>
         </div>
     </footer>
 
-    <!-- Botão do carrinho -->
+
     <div id="cart-button">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -79,7 +80,7 @@
         <span id="cart-count">0</span>
     </div>
 
-    <!-- Sidebar do carrinho -->
+
     <div id="cart-sidebar" class="hidden">
         <div class="cart-header">
             <h2>Carrinho</h2>
@@ -99,7 +100,7 @@
         </div>
     </div>
 
-    <!-- Modal de Produto -->
+
     <div id="product-modal" class="modal hidden">
         <div class="modal-overlay"></div>
         <div class="modal-content">
@@ -110,7 +111,7 @@
                         <img id="modal-main-image" src="" alt="">
                     </div>
                     <div class="thumbnail-container" id="thumbnails">
-                        <!-- Thumbnails serão inseridos aqui via JavaScript -->
+
                     </div>
                 </div>
                 <div class="modal-info">
@@ -131,7 +132,7 @@
         </div>
     </div>
 
-    <!-- Botão de voltar ao topo -->
+
     <div id="back-to-top" class="hidden">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
