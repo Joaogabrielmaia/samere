@@ -38,43 +38,11 @@ function formatText(text) {
     .replace(/Cotton Pima/gi, "Cotton Pima");
 }
 
-function saveProductsToLocalStorage(products) {
-  localStorage.setItem('cachedProducts', JSON.stringify(products));
-  localStorage.setItem('lastProductFetch', new Date().getTime());
-}
-
-function loadProductsFromLocalStorage() {
-  const cachedProducts = localStorage.getItem('cachedProducts');
-  const lastFetch = localStorage.getItem('lastProductFetch');
-
-  if (cachedProducts && lastFetch) {
-    if (new Date().getTime() - lastFetch < 86400000) {
-      return JSON.parse(cachedProducts);
-    }
-  }
-  return null;
-}
-
 function saveCart() {
   localStorage.setItem("cart", JSON.stringify(cart));
 }
 
 function loadProducts() {
-
-  const cachedProducts = loadProductsFromLocalStorage();
-
-  if (cachedProducts) {
-    allProducts = cachedProducts;
-    cachedProducts.sort((a, b) => a.nome.localeCompare(b.nome));
-
-    cachedProducts.forEach((item) => {
-      createProductCard(item);
-    });
-
-    updateCart();
-    return;
-  }
-
   fetch(apiUrl)
     .then((response) => {
       if (!response.ok) {
@@ -84,8 +52,6 @@ function loadProducts() {
     })
     .then((data) => {
       allProducts = data;
-      saveProductsToLocalStorage(data);
-
       data.sort((a, b) => a.nome.localeCompare(b.nome));
 
       data.forEach((item) => {
