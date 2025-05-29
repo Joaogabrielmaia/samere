@@ -1,4 +1,4 @@
-const apiUrl = "https://sheetdb.io/api/v1/5eqyomzhep4j3";
+const apiUrl = "https://sheetdb.io/api/v1/2mp6vlwu9wd1o";
 
 const algodaoContainer = document.getElementById("algodao-container");
 const pimaContainer = document.getElementById("pima-container");
