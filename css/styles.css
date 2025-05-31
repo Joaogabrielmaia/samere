@@ -138,12 +138,15 @@ body {
 
 .video-container iframe {
   width: 100%;
-  height: 450px;
+  max-width: 315px; 
+  height: 560px;     
+  margin: 0 auto;
   border: none;
   display: block;
   position: relative;
   z-index: 0;
 }
+
 
 /* Seção de Produtos */
 .products-section {
