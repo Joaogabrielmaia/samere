@@ -124,6 +124,13 @@ body {
   align-items: center;
 }
 
+.video-container video {
+    max-width: 100%;
+    border-radius: 10px;
+    border: 2px solid var(--secondary);
+    background-color: #000;
+}
+
 
 .video-container iframe {
   width: 315px; 
