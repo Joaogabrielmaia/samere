@@ -1,16 +1,15 @@
-const apiUrl = "https://sheetdb.io/api/v1/2mp6vlwu9wd1o";
+const POLLING_INTERVAL = 30000;
+const CACHE_BUSTING = true;
+
+const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTr9dMI_98ezu15FSOXwqpDbrbiChtVx0yZMp7qxw9zVBR6vWSKQld7XbcuT7YqgRCUvTUyVTT2Wy70/pub?gid=0&single=true&output=csv';
 
 const algodaoContainer = document.getElementById("algodao-container");
 const pimaContainer = document.getElementById("pima-container");
-
-
 const cartButton = document.getElementById("cart-button");
 const cartSidebar = document.getElementById("cart-sidebar");
 const closeCartButton = document.getElementById("close-cart");
 const cartItemsContainer = document.getElementById("cart-items");
 const cartCount = document.getElementById("cart-count");
-
-
 const productModal = document.getElementById("product-modal");
 const closeModal = document.querySelector(".close-modal");
 const modalMainImage = document.getElementById("modal-main-image");
@@ -19,12 +18,14 @@ const modalProductName = document.getElementById("modal-product-name");
 const modalColorSelect = document.getElementById("modal-color-select");
 const modalSizeSelect = document.getElementById("modal-size-select");
 const modalAddToCart = document.getElementById("modal-add-to-cart");
-
+const exitFullscreenBtn = document.getElementById("exit-fullscreen-btn");
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let currentProduct = null;
 let allProducts = [];
-
+let lastETag = null;
+let lastModified = null;
+let pollingIntervalId = null;
 
 function formatText(text) {
   if (!text) return "";
@@ -41,81 +42,184 @@ function saveCart() {
   localStorage.setItem("cart", JSON.stringify(cart));
 }
 
-function loadProducts() {
-  fetch(apiUrl)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Erro ao carregar os dados");
+function csvToJson(csv) {
+  const lines = csv.split('\n').filter(line => line.trim() !== '');
+  const result = [];
+  
+  if (lines.length === 0) return result;
+  
+  const headers = lines[0].split(',').map(h => h.trim());
+  
+  for (let i = 1; i < lines.length; i++) {
+    const obj = {};
+    let currentline = lines[i];
+ 
+    const quotedParts = currentline.split('"');
+    let processedParts = [];
+    
+    for (let j = 0; j < quotedParts.length; j++) {
+      if (j % 2 === 0) {
+        const parts = quotedParts[j].split(',');
+        processedParts.push(...parts);
+      } else {
+        processedParts.push(quotedParts[j]);
       }
-      return response.json();
-    })
-    .then((data) => {
-      allProducts = data;
-      data.sort((a, b) => a.nome.localeCompare(b.nome));
-
-      data.forEach((item) => {
-        createProductCard(item);
-      });
-
-      updateCart();
-    })
-    .catch((error) => {
-      console.error("Erro ao carregar os dados:", error);
-      showError("Erro ao carregar produtos. Por favor, recarregue a página.");
-    });
+    }
+    
+    currentline = processedParts.map(item => item.trim()).filter(item => item !== '');
+    
+    for (let j = 0; j < headers.length; j++) {
+      const header = headers[j];
+      const value = currentline[j] ? currentline[j].trim() : '';
+      
+      if (header === 'cor' || header === 'tamanho' || header === 'outras-duas-fotos') {
+        const cleanedValue = value.replace(/^"+|"+$/g, '');
+        obj[header] = cleanedValue.split(',').map(item => item.trim()).filter(item => item !== '');
+      } else {
+        obj[header] = value;
+      }
+    }
+    
+    if (obj.nome && obj.imagem) {
+      result.push(obj);
+    }
+  }
+  
+  return result;
 }
 
+async function checkForUpdates() {
+  try {
+    const url = CACHE_BUSTING ? `${csvUrl}&t=${Date.now()}` : csvUrl;
+    
+    const response = await fetch(url, {
+      method: 'HEAD',
+      cache: 'no-cache'
+    });
+    
+    const currentETag = response.headers.get('ETag');
+    const currentModified = response.headers.get('Last-Modified');
+
+    if ((!lastETag && !lastModified) || 
+        (currentETag && currentETag !== lastETag) || 
+        (currentModified && currentModified !== lastModified)) {
+      
+      lastETag = currentETag;
+      lastModified = currentModified;
+      
+      await loadProducts();
+      console.log('Dados atualizados com sucesso');
+    }
+  } catch (error) {
+    console.error("Erro ao verificar atualizações:", error);
+  }
+}
+
+async function loadProducts() {
+  try {
+    const url = CACHE_BUSTING ? `${csvUrl}&t=${Date.now()}` : csvUrl;
+    
+    const response = await fetch(url, {
+      cache: 'no-cache'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Erro ao carregar os dados');
+    }
+    
+    lastETag = response.headers.get('ETag');
+    lastModified = response.headers.get('Last-Modified');
+    
+    const csvData = await response.text();
+    const newProducts = csvToJson(csvData);
+
+    if (JSON.stringify(newProducts) !== JSON.stringify(allProducts)) {
+      allProducts = newProducts;
+      console.log('Produtos atualizados:', allProducts);
+      
+      allProducts.sort((a, b) => a.nome.localeCompare(b.nome));
+      
+      algodaoContainer.innerHTML = '';
+      pimaContainer.innerHTML = '';
+      
+      allProducts.forEach((item) => {
+        createProductCard(item);
+      });
+    }
+    
+    updateCart();
+  } catch (error) {
+    console.error("Erro ao carregar os dados:", error);
+    showError("Erro ao carregar produtos. Por favor, recarregue a página.");
+  }
+}
 
 function createProductCard(item) {
+  if (!item.nome || !item.malha) {
+    console.warn('Item inválido, ignorando:', item);
+    return;
+  }
+
   const card = document.createElement("div");
   card.classList.add("card");
+  
+  const isPima = item.malha.toLowerCase().includes("pima");
+  card.dataset.malha = isPima ? "pima" : "algodao";
+  card.dataset.id = item.id || Math.random().toString(36).substr(2, 9);
 
+  let cores = [];
+  if (Array.isArray(item.cor)) {
+    cores = item.cor;
+  } else if (item.cor) {
+    cores = item.cor.split(',').map(c => c.trim()).filter(c => c !== '');
+  }
+  if (cores.length === 0) cores = ['Não especificado'];
+  
+  let tamanhos = [];
+  if (Array.isArray(item.tamanho)) {
+    tamanhos = item.tamanho;
+  } else if (item.tamanho) {
+    tamanhos = item.tamanho.split(',').map(t => t.trim()).filter(t => t !== '');
+  }
+  if (tamanhos.length === 0) tamanhos = ['Único'];
 
-  card.dataset.malha = item.malha.toLowerCase().includes("pima") ? "pima" : "algodao";
-
-
-  const corSelect = document.createElement("select");
-  corSelect.id = `cor-${item.id}`;
-  corSelect.classList.add("product-select");
-  item.cor.split(",").forEach((cor) => {
-    const option = document.createElement("option");
-    option.value = cor.trim();
-    option.textContent = formatText(cor.trim());
-    corSelect.appendChild(option);
-  });
-
-
-  const tamanhoSelect = document.createElement("select");
-  tamanhoSelect.id = `tamanho-${item.id}`;
-  tamanhoSelect.classList.add("product-select");
-  item.tamanho.split(",").forEach((tam) => {
-    const option = document.createElement("option");
-    option.value = tam.trim();
-    option.textContent = tam.trim().toUpperCase();
-    tamanhoSelect.appendChild(option);
-  });
-
+  const imagemPrincipal = item.imagem || 'https://placehold.co/300x400?text=Imagem+Indisponível';
 
   card.innerHTML = `
     <div class="image-container">
-      <img src="${item.imagem}" alt="${item.nome}" loading="lazy" class="product-image" 
+      <img src="${imagemPrincipal}" alt="${item.nome}" loading="lazy" class="product-image"
            onerror="this.src='https://placehold.co/300x400?text=Imagem+Indisponível'">
     </div>
     <h3>${formatText(item.nome)}</h3>
   `;
 
-
   const selectContainer = document.createElement("div");
   selectContainer.classList.add("select-container");
 
+  const corSelect = document.createElement("select");
+  corSelect.classList.add("product-select");
+  cores.forEach((cor) => {
+    const option = document.createElement("option");
+    option.value = cor;
+    option.textContent = formatText(cor);
+    corSelect.appendChild(option);
+  });
+
+  const tamanhoSelect = document.createElement("select");
+  tamanhoSelect.classList.add("product-select");
+  tamanhos.forEach((tam) => {
+    const option = document.createElement("option");
+    option.value = tam;
+    option.textContent = tam.toUpperCase();
+    tamanhoSelect.appendChild(option);
+  });
+
   const labelCor = document.createElement("label");
   labelCor.textContent = "Cor: ";
-  labelCor.htmlFor = `cor-${item.id}`;
   labelCor.appendChild(corSelect);
 
   const labelTamanho = document.createElement("label");
   labelTamanho.textContent = "Tamanho: ";
-  labelTamanho.htmlFor = `tamanho-${item.id}`;
   labelTamanho.appendChild(tamanhoSelect);
 
   selectContainer.appendChild(labelCor);
@@ -130,74 +234,86 @@ function createProductCard(item) {
   addButton.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const card = e.target.closest('.card');
-    const malhaType = card.dataset.malha === "pima" ? "Cotton Pima" : "100% Algodão";
-
     addToCart({
-      id: item.id,
+      id: card.dataset.id,
       nome: item.nome,
       cor: corSelect.value,
       tamanho: tamanhoSelect.value,
-      imagem: item.imagem,
-      malha: malhaType
+      imagem: imagemPrincipal,
+      malha: isPima ? "Cotton Pima" : "100% Algodão"
     });
   });
 
   card.appendChild(addButton);
 
-
   const productImage = card.querySelector(".product-image");
   productImage.style.cursor = "pointer";
-
   productImage.addEventListener("click", (e) => {
     e.stopPropagation();
     openProductModal(item);
   });
 
-  if (item.malha.toLowerCase().includes("pima")) {
+  if (isPima) {
     pimaContainer.appendChild(card);
   } else {
     algodaoContainer.appendChild(card);
   }
 }
 
-
 function openProductModal(product) {
   currentProduct = product;
-
   modalProductName.textContent = formatText(product.nome);
-  modalMainImage.src = product.imagem;
-  modalMainImage.onerror = function () {
+  modalMainImage.src = product.imagem || 'https://placehold.co/600x800?text=Imagem+Indisponível';
+  modalMainImage.onerror = function() {
     this.src = "https://placehold.co/600x800?text=Imagem+Indisponível";
   };
 
   modalColorSelect.innerHTML = "";
-  product.cor.split(",").forEach((cor) => {
+  let cores = [];
+  if (Array.isArray(product.cor)) {
+    cores = product.cor;
+  } else if (product.cor) {
+    cores = product.cor.split(',').map(c => c.trim()).filter(c => c !== '');
+  }
+  if (cores.length === 0) cores = ['Não especificado'];
+  
+  cores.forEach((cor) => {
     const option = document.createElement("option");
-    option.value = cor.trim();
-    option.textContent = formatText(cor.trim());
+    option.value = cor;
+    option.textContent = formatText(cor);
     modalColorSelect.appendChild(option);
   });
 
   modalSizeSelect.innerHTML = "";
-  product.tamanho.split(",").forEach((tam) => {
+  let tamanhos = [];
+  if (Array.isArray(product.tamanho)) {
+    tamanhos = product.tamanho;
+  } else if (product.tamanho) {
+    tamanhos = product.tamanho.split(',').map(t => t.trim()).filter(t => t !== '');
+  }
+  if (tamanhos.length === 0) tamanhos = ['Único'];
+  
+  tamanhos.forEach((tam) => {
     const option = document.createElement("option");
-    option.value = tam.trim();
-    option.textContent = tam.trim().toUpperCase();
+    option.value = tam;
+    option.textContent = tam.toUpperCase();
     modalSizeSelect.appendChild(option);
   });
 
   thumbnailsContainer.innerHTML = "";
-
   let additionalImages = [];
-  if (product["outras-duas-fotos"] && product["outras-duas-fotos"].trim() !== "") {
-    additionalImages = product["outras-duas-fotos"].split(",").map((img) => img.trim());
+  if (product["outras-duas-fotos"]) {
+    additionalImages = Array.isArray(product["outras-duas-fotos"]) ? 
+      product["outras-duas-fotos"] : 
+      product["outras-duas-fotos"].split(',').map(img => img.trim()).filter(img => img !== '');
   }
 
-  [product.imagem, ...additionalImages].forEach((img, index) => {
-    if (!img || img.trim() === "") return;
+  const allImages = [product.imagem, ...additionalImages].filter(img => img && img.trim() !== '');
+  if (allImages.length === 0) {
+    allImages.push('https://placehold.co/600x800?text=Imagem+Indisponível');
+  }
 
+  allImages.forEach((img, index) => {
     const thumbnail = document.createElement("div");
     thumbnail.classList.add("thumbnail");
     if (index === 0) thumbnail.classList.add("active");
@@ -205,12 +321,11 @@ function openProductModal(product) {
     const thumbnailImg = document.createElement("img");
     thumbnailImg.src = img;
     thumbnailImg.alt = `Thumbnail ${index + 1}`;
-    thumbnailImg.onerror = function () {
+    thumbnailImg.onerror = function() {
       this.src = "https://placehold.co/100x100?text=Indisponível";
     };
 
     thumbnail.appendChild(thumbnailImg);
-
     thumbnail.addEventListener("click", () => {
       modalMainImage.src = img;
       document.querySelectorAll(".thumbnail").forEach((t) => t.classList.remove("active"));
@@ -234,30 +349,7 @@ function openProductModal(product) {
   });
 }
 
-const exitFullscreenBtn = document.getElementById("exit-fullscreen-btn");
-
-document.addEventListener("fullscreenchange", () => {
-  if (document.fullscreenElement) {
-    exitFullscreenBtn.style.display = "block";
-  } else {
-    exitFullscreenBtn.style.display = "none";
-  }
-});
-
-exitFullscreenBtn.addEventListener("click", () => {
-  if (document.exitFullscreen) {
-    document.exitFullscreen();
-  } else if (document.webkitExitFullscreen) { 
-    document.webkitExitFullscreen();
-  } else if (document.msExitFullscreen) { 
-    document.msExitFullscreen();
-  }
-});
-
-
-
 function addToCart(item) {
-
   const existingItemIndex = cart.findIndex(
     cartItem =>
       cartItem.nome === item.nome &&
@@ -267,11 +359,9 @@ function addToCart(item) {
   );
 
   if (existingItemIndex >= 0) {
-
     cart[existingItemIndex].quantidade += 1;
     showNotification(`+1 ${formatText(item.nome)} no carrinho`);
   } else {
-
     const newItem = {
       ...item,
       quantidade: 1,
@@ -284,7 +374,6 @@ function addToCart(item) {
   updateCart();
 }
 
-
 function updateCart() {
   if (cart.length === 0) {
     cartItemsContainer.innerHTML = '<p class="empty-cart">Seu carrinho está vazio</p>';
@@ -295,9 +384,7 @@ function updateCart() {
     return;
   }
 
-
   cartItemsContainer.innerHTML = '';
-
 
   cart.forEach((item, index) => {
     const cartItem = document.createElement("div");
@@ -307,35 +394,55 @@ function updateCart() {
     const malhaText = item.malha === "Cotton Pima" ? "Cotton Pima" : "100% Algodão";
 
     cartItem.innerHTML = `
-    <div class="cart-item-image">
-        <img src="${item.imagem}" alt="${item.nome}" loading="lazy">
-    </div>
-    <div class="cart-item-details">
-        <p class="cart-item-title">${formatText(item.nome)}</p>
-        <p class="cart-item-malha">${malhaText}</p>
-        <p class="cart-item-variants">${formatText(item.cor)} - ${item.tamanho.toUpperCase()}</p>
-        <div class="quantity-controls">
-            <button class="decrease-quantity" data-index="${index}">−</button>
-            <span class="quantity">${item.quantidade || 1}</span>
-            <button class="increase-quantity" data-index="${index}">+</button>
-        </div>
-    </div>
-    <button class="remove-item" data-index="${index}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            <line x1="10" y1="11" x2="10" y2="17"></line>
-            <line x1="14" y1="11" x2="14" y2="17"></line>
-        </svg>
-    </button>
-`;
+      <div class="cart-item-image">
+          <img src="${item.imagem}" alt="${item.nome}" loading="lazy">
+      </div>
+      <div class="cart-item-details">
+          <p class="cart-item-title">${formatText(item.nome)}</p>
+          <p class="car-item-malha">${malhaText}</p>
+          <p class="cart-item-variants">${formatText(item.cor)} - ${item.tamanho.toUpperCase()}</p>
+          <div class="quantity-controls">
+              <button class="decrease-quantity" data-index="${index}">−</button>
+              <span class="quantity">${item.quantidade || 1}</span>
+              <button class="increase-quantity" data-index="${index}">+</button>
+          </div>
+      </div>
+      <button class="remove-item" data-index="${index}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+      </button>
+    `;
 
     cartItemsContainer.appendChild(cartItem);
   });
 
+  document.querySelectorAll(".remove-item").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const index = e.currentTarget.getAttribute("data-index");
+      removeFromCart(index);
+    });
+  });
 
-  setupCartItemEvents();
+  document.querySelectorAll(".decrease-quantity").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const index = e.currentTarget.getAttribute("data-index");
+      updateQuantity(index, -1);
+    });
+  });
 
+  document.querySelectorAll(".increase-quantity").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const index = e.currentTarget.getAttribute("data-index");
+      updateQuantity(index, 1);
+    });
+  });
 
   updateCartTotals();
 }
@@ -364,70 +471,29 @@ function sendWhatsAppOrder() {
   window.open(whatsappUrl, "_blank");
 }
 
-
-function setupCartItemEvents() {
-
-  document.querySelectorAll(".remove-item").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const index = e.currentTarget.getAttribute("data-index");
-      removeFromCart(index);
-    });
-  });
-
-
-  document.querySelectorAll(".decrease-quantity").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const index = e.currentTarget.getAttribute("data-index");
-      updateQuantity(index, -1);
-    });
-  });
-
-
-  document.querySelectorAll(".increase-quantity").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const index = e.currentTarget.getAttribute("data-index");
-      updateQuantity(index, 1);
-    });
-  });
-}
-
-
-
 function updateQuantity(index, change) {
-
   index = parseInt(index);
-
 
   if (isNaN(index) || index < 0 || index >= cart.length) {
     console.error('Índice inválido:', index);
     return;
   }
 
-
   if (!cart[index].quantidade) {
     cart[index].quantidade = 1;
   }
 
   const newQuantity = cart[index].quantidade + change;
-
-
   cart[index].quantidade = Math.max(1, newQuantity);
 
   saveCart();
-
-
   const quantityElement = document.querySelector(`.cart-item[data-index="${index}"] .quantity`);
   if (quantityElement) {
     quantityElement.textContent = cart[index].quantidade;
   }
 
-
   updateCartTotals();
 }
-
 
 function updateCartTotals() {
   const totalItems = cart.reduce((total, item) => total + (item.quantidade || 1), 0);
@@ -498,15 +564,22 @@ function showError(message) {
   }, 5000);
 }
 
+function startPolling() {
+  checkForUpdates();
+  
+  pollingIntervalId = setInterval(checkForUpdates, POLLING_INTERVAL);
+}
+
+function stopPolling() {
+  if (pollingIntervalId) {
+    clearInterval(pollingIntervalId);
+    pollingIntervalId = null;
+  }
+}
 
 cartButton.addEventListener("click", () => {
   cartSidebar.classList.remove("hidden");
   document.body.style.overflow = "hidden";
-});
-
-document.getElementById('whatsapp-button').addEventListener('click', function (e) {
-  e.preventDefault();
-  sendWhatsAppOrder();
 });
 
 closeCartButton.addEventListener("click", () => {
@@ -552,14 +625,15 @@ productModal.addEventListener("click", (e) => {
   }
 });
 
+document.getElementById('whatsapp-button').addEventListener('click', function(e) {
+  e.preventDefault();
+  sendWhatsAppOrder();
+});
 
-document.addEventListener('DOMContentLoaded', function () {
-
+document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('year').textContent = new Date().getFullYear();
 
-
   const backToTopButton = document.getElementById('back-to-top');
-
   window.addEventListener('scroll', () => {
     if (window.pageYOffset > 300) {
       backToTopButton.classList.add('visible');
@@ -575,7 +649,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-
   const malhaFilter = document.getElementById('malha-filter');
   const searchFilter = document.getElementById('search-filter');
 
@@ -583,12 +656,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectedMalha = malhaFilter.value;
     const searchTerm = searchFilter.value.toLowerCase();
 
-
     document.getElementById('algodao-section').style.display = 'none';
     document.getElementById('algodao-container').style.display = 'none';
     document.getElementById('pima-section').style.display = 'none';
     document.getElementById('pima-container').style.display = 'none';
-
 
     if (selectedMalha === 'all') {
       document.getElementById('algodao-section').style.display = 'block';
@@ -603,15 +674,12 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('pima-container').style.display = 'grid';
     }
 
-
     const allCards = document.querySelectorAll('.card');
     allCards.forEach(card => {
       const cardTitle = card.querySelector('h3').textContent.toLowerCase();
       const cardVisible = cardTitle.includes(searchTerm);
-
       card.style.display = cardVisible ? 'block' : 'none';
     });
-
 
     if (searchTerm) {
       document.getElementById('algodao-section').style.display = 'block';
@@ -621,7 +689,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   malhaFilter.addEventListener('change', () => {
     filterProducts();
-
     if (malhaFilter.value === 'algodao') {
       document.getElementById('algodao-section').scrollIntoView({ behavior: 'smooth' });
     } else if (malhaFilter.value === 'pima') {
@@ -631,26 +698,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   searchFilter.addEventListener('input', filterProducts);
 
-  if (typeof loadProducts === 'function') {
-    loadProducts();
-  }
+  loadProducts();
+  startPolling();
 });
 
 window.removeFromCart = removeFromCart;
-
-const backToTopButton = document.getElementById('back-to-top');
-
-window.addEventListener('scroll', () => {
-  if (window.pageYOffset > 300) {
-    backToTopButton.classList.add('visible');
-  } else {
-    backToTopButton.classList.remove('visible');
-  }
-});
-
-backToTopButton.addEventListener('click', () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
-});
