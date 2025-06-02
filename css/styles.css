@@ -20,38 +20,6 @@ html, body {
   color: var(--light);
 }
 
-body {
-  background: radial-gradient(circle at center, #0a0e12 0%, #000000 100%),
-      radial-gradient(
-        circle at 20% 30%,
-        rgba(46, 164, 203, 0.15) 0%,
-        transparent 25%
-      ),
-      radial-gradient(
-        circle at 80% 70%,
-        rgba(158, 231, 255, 0.1) 0%,
-        transparent 30%
-      ),
-      repeating-linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.01) 0px,
-        rgba(255, 255, 255, 0.01) 1px,
-        transparent 1px,
-        transparent 10px
-      );
-  background-blend-mode: overlay;
-  animation: breathLight 12s infinite alternate;
-}
-
-@keyframes breathLight {
-  0% {
-    background-position: 0% 0%;
-  }
-  100% {
-    background-position: 100% 100%;
-  }
-}
-
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -95,15 +63,6 @@ body {
   color: var(--primary);
   text-shadow: 0 0 10px rgba(158, 231, 255, 0.5);
   animation: glow 2s infinite alternate;
-}
-
-@keyframes glow {
-  from {
-    text-shadow: 0 0 5px var(--primary);
-  }
-  to {
-    text-shadow: 0 0 15px var(--primary), 0 0 20px var(--secondary);
-  }
 }
 
 .video-section p {
@@ -914,11 +873,6 @@ body {
     }
 
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 }
 
 /* Floating t-shirts background */
@@ -949,13 +903,4 @@ body {
   left: 70%;
   animation-delay: 4s;
   animation-duration: 18s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
 }
