@@ -31,7 +31,7 @@ html, body {
   width: 100%;
   margin-left: calc(-50vw + 50%);
   background-color: var(--dark);
-  padding: 20px 0;
+  padding: 30px 0; /* Aumente este valor para mais espaço */
   position: sticky;
   top: 0;
   z-index: 100;
@@ -41,8 +41,19 @@ html, body {
 
 .navbar-container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+}
+
+.navbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 0;
 }
 
 .logo {
@@ -102,7 +113,82 @@ html, body {
   border-radius: 5px;
 }
 
+/* Instagram Section */
+.instagram-section {
+    margin-top: 30px;
+    text-align: center;
+    padding: 15px;
+    background: rgba(46, 164, 203, 0.1);
+    border-radius: 8px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
 
+.instagram-section a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.instagram-section a:hover {
+    color: white;
+    transform: scale(1.05);
+}
+
+.instagram-section svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--primary);
+    transition: all 0.3s;
+}
+
+.instagram-section a:hover svg {
+    stroke: white;
+}
+
+/* Navbar Social */
+.navbar-social {
+    margin-left: auto;
+    padding-right: 20px;
+}
+
+.navbar-social a {
+    color: var(--primary);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(158, 231, 255, 0.1);
+}
+
+.navbar-social a:hover {
+    background: rgba(158, 231, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.navbar-social svg {
+    width: 20px;
+    height: 20px;
+}
+
+@media (max-width: 768px) {
+    .navbar-social {
+        padding-right: 10px;
+    }
+    
+    .navbar-social a {
+        width: 36px;
+        height: 36px;
+    }
+}
 
 /* Seção de Produtos */
 .products-section {
@@ -583,7 +669,196 @@ html, body {
   gap: 20px;
 }
 
-/* Layout para desktop */
+/* Seção do Carrossel - Estilização Atualizada */
+.carousel-section {
+    padding: 30px 15px;
+    text-align: center;
+    margin: 40px 0;
+    width: 100%;
+    background-color: var(--dark);
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid var(--secondary);
+    border-bottom: 1px solid var(--secondary);
+}
+
+.carousel-section h2 {
+    color: var(--primary);
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    text-shadow: 0 0 10px rgba(158, 231, 255, 0.5);
+    padding: 0 15px;
+}
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.carousel-slides {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    height: 300px; /* Altura reduzida para mobile */
+}
+
+.carousel-slide {
+    min-width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px; /* Adiciona espaçamento nas laterais */
+}
+
+.carousel-slide img {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain; /* Garante que a imagem inteira seja mostrada */
+    display: block;
+    border-radius: 8px;
+    border: 1px solid var(--gray);
+}
+
+.carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(46, 164, 203, 0.7);
+    color: white;
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.carousel-button:hover {
+    background: var(--primary);
+    color: var(--dark);
+}
+
+.carousel-button.prev {
+    left: 5px;
+}
+
+.carousel-button.next {
+    right: 5px;
+}
+
+.carousel-caption {
+    padding: 10px 15px;
+    color: var(--primary);
+    font-size: 1rem;
+    margin-top: 10px;
+    min-height: 40px;
+    text-align: center;
+}
+
+.carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+    padding-bottom: 10px;
+}
+
+.carousel-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--gray);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.carousel-indicator.active {
+    background-color: var(--primary);
+    transform: scale(1.2);
+}
+
+/* Modal do Carrossel */
+.carousel-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-modal.show {
+    display: flex;
+}
+
+.carousel-modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.carousel-modal-img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+.close-carousel-modal {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: var(--primary);
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+@media (min-width: 768px) {
+    .carousel-section {
+        padding: 40px 20px;
+        margin: 60px auto;
+        max-width: 1200px;
+        border-radius: 10px;
+        border: 1px solid var(--secondary);
+    }
+    
+    .carousel-slides {
+        height: 400px;
+    }
+    
+    .carousel-slide {
+        padding: 0 30px;
+    }
+    
+    .carousel-button {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    .carousel-button.prev {
+        left: 15px;
+    }
+    
+    .carousel-button.next {
+        right: 15px;
+    }
+}
+
 @media (min-width: 768px) {
   .modal-body {
     display: grid;

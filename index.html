@@ -12,25 +12,61 @@
 <body>
 
     <nav class="navbar">
-        <div class="navbar-container">
+    <div class="navbar-container">
+        <div class="navbar-left"></div>
+        <div class="navbar-center">
             <img src="img/logo.png" alt="Logo" class="logo">
         </div>
-    </nav>
+        <div class="navbar-right">
+            <div class="navbar-social">
+                <a href="https://instagram.com/samere.atacado" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
 
 
     <section class="video-section">
-    <div class="container">
-        <h1>CATÁLOGO DIGITAL</h1>
-        <p>VEJA O VÍDEO ABAIXO DE COMO ESCOLHER SEU PEDIDO:</p>
+        <div class="container">
+            <h1>CATÁLOGO DIGITAL</h1>
+            <p>VEJA O VÍDEO ABAIXO DE COMO ESCOLHER SEU PEDIDO:</p>
 
-        <div class="video-container">
-            <video controls poster="img/poster.png" style="width: 315px; height: 560px;">
-                <source src="videos/video.mp4" type="video/mp4">
-                Seu navegador não suporta o elemento de vídeo.
-            </video>
+            <div class="video-container">
+                <video controls poster="img/poster.png" style="width: 315px; height: 560px;">
+                    <source src="videos/video.mp4" type="video/mp4">
+                    Seu navegador não suporta o elemento de vídeo.
+                </video>
+            </div>
         </div>
-    </div>
-</section>
+        <!-- Adicione isso dentro da section do vídeo, após o video-container -->
+<div class="instagram-section">
+    <a href="https://instagram.com/samere.atacado" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+        Instagram oficial da nossa loja @samere.atacado
+    </a>
+</div>
+    </section>
+
+    <section class="carousel-section">
+        <h2>Nossos Produtos no Corpo</h2>
+        <div class="carousel-container">
+            <button class="carousel-button prev" aria-label="Anterior">❮</button>
+            <div class="carousel-slides"></div>
+            <button class="carousel-button next" aria-label="Próximo">❯</button>
+        </div>
+        <div class="carousel-caption"></div>
+        <div class="carousel-indicators"></div>
+    </section>
 
 
     <section class="products-section">
@@ -132,11 +168,19 @@
             </div>
         </div>
     </div>
-    <button id="exit-fullscreen-btn" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 15px; font-size: 16px; background-color: #000; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
-  Fechar Tela Cheia
-</button>
+    <button id="exit-fullscreen-btn"
+        style="display: none; position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 15px; font-size: 16px; background-color: #000; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+        Fechar Tela Cheia
+    </button>
 
 
+    <!-- Modal para imagem do carrossel -->
+<div id="carousel-modal" class="carousel-modal">
+    <div class="carousel-modal-content">
+        <span class="close-carousel-modal">&times;</span>
+        <img id="carousel-modal-img" class="carousel-modal-img" src="" alt="">
+    </div>
+</div>
 
     <div id="back-to-top" class="hidden">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"

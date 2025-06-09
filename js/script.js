@@ -3,6 +3,11 @@ const CACHE_BUSTING = true;
 
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTr9dMI_98ezu15FSOXwqpDbrbiChtVx0yZMp7qxw9zVBR6vWSKQld7XbcuT7YqgRCUvTUyVTT2Wy70/pub?gid=0&single=true&output=csv';
 
+const carouselCSVUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTd8LhduYPeYKQCRed1GnaWtRsr_9Zp_94d6tXPdKUNdlptSJ6oolNDWwON16Xk2kn7ee18BDzg0biK/pub?gid=0&single=true&output=csv';
+let carouselSlides = [];
+let currentSlideIndex = 0;
+let carouselInterval;
+
 const algodaoContainer = document.getElementById("algodao-container");
 const pimaContainer = document.getElementById("pima-container");
 const cartButton = document.getElementById("cart-button");
@@ -457,11 +462,24 @@ function sendWhatsAppOrder() {
 
   let message = "Olá, gostaria de fazer um pedido com os seguintes itens:\n\n";
 
+  const malhaCounts = {
+    "algodao": 0,
+    "pima": 0
+  };
+
   cart.forEach((item) => {
     const malhaText = item.malha.toLowerCase().includes("pima") ? "Cotton Pima" : "100% Algodão";
     message += `${formatText(item.nome)} (${formatText(item.cor)}, ${item.tamanho.toUpperCase()}) - ${malhaText} - Quantidade: ${item.quantidade || 1}\n`;
+
+    if (malhaText === "100% Algodão") {
+      malhaCounts.algodao += item.quantidade || 1;
+    } else {
+      malhaCounts.pima += item.quantidade || 1;
+    }
   });
 
+  message += `\nAlgodão: ${malhaCounts.algodao}`;
+  message += `\nCotton Pima: ${malhaCounts.pima}`;
   message += `\nTotal de itens: ${totalItems}`;
 
   const encodedMessage = encodeURIComponent(message);
@@ -700,6 +718,202 @@ document.addEventListener('DOMContentLoaded', function() {
 
   loadProducts();
   startPolling();
+
+  // Inicializar o carrossel
+    loadCarouselImages();
+
+    // Configurar eventos de hover para pausar o carrossel
+    const carousel = document.querySelector('.carousel-container');
+    if (carousel) {
+        carousel.addEventListener('mouseenter', () => {
+            clearInterval(carouselInterval);
+        });
+        
+        carousel.addEventListener('mouseleave', () => {
+            startCarousel();
+        });
+    }
 });
+
+// Função para carregar as imagens do carrossel
+async function loadCarouselImages() {
+    try {
+        const response = await fetch(carouselCSVUrl);
+        const csvData = await response.text();
+        const lines = csvData.split('\n').filter(line => line.trim() !== '');
+        
+        if (lines.length < 2) {
+            console.warn('Planilha do carrossel vazia ou com formato incorreto');
+            return;
+        }
+        
+        // Processar o CSV
+        carouselSlides = [];
+        const headers = lines[0].split(',');
+        
+        for (let i = 1; i < lines.length; i++) {
+            const currentline = lines[i].split('"').join('').split(',');
+            const slide = {
+                id: currentline[0]?.trim() || '',
+                imagem: currentline[1]?.trim() || '',
+                legenda: currentline[2]?.trim() || ''
+            };
+            
+            if (slide.imagem) {
+                carouselSlides.push(slide);
+            }
+        }
+        
+        if (carouselSlides.length > 0) {
+            initCarousel();
+            startCarousel();
+        } else {
+            console.warn('Nenhum slide válido encontrado na planilha do carrossel');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar o carrossel:', error);
+        showError("Erro ao carregar o carrossel de fotos");
+    }
+}
+
+// Inicializar o carrossel
+function initCarousel() {
+    const slidesContainer = document.querySelector('.carousel-slides');
+    const indicatorsContainer = document.querySelector('.carousel-indicators');
+    
+    if (!slidesContainer || !indicatorsContainer) {
+        console.error('Elementos do carrossel não encontrados no DOM');
+        return;
+    }
+    
+    slidesContainer.innerHTML = '';
+    indicatorsContainer.innerHTML = '';
+    
+    carouselSlides.forEach((slide, index) => {
+        // Criar slide
+        const slideElement = document.createElement('div');
+        slideElement.classList.add('carousel-slide');
+        slideElement.dataset.index = index;
+        
+        const img = document.createElement('img');
+        img.src = slide.imagem;
+        img.alt = slide.legenda;
+        img.loading = 'lazy';
+        img.onerror = function() {
+            this.src = 'https://placehold.co/800x500?text=Imagem+Indisponível';
+        };
+        
+        slideElement.appendChild(img);
+        slidesContainer.appendChild(slideElement);
+        
+        // Criar indicador
+        const indicator = document.createElement('div');
+        indicator.classList.add('carousel-indicator');
+        indicator.dataset.index = index;
+        if (index === 0) indicator.classList.add('active');
+        
+        indicator.addEventListener('click', () => {
+            goToSlide(index);
+        });
+        
+        indicatorsContainer.appendChild(indicator);
+    });
+    
+    // Atualizar legenda
+    updateCaption();
+    
+    // Event listeners para os botões
+    const prevButton = document.querySelector('.carousel-button.prev');
+    const nextButton = document.querySelector('.carousel-button.next');
+    
+    if (prevButton && nextButton) {
+        prevButton.addEventListener('click', prevSlide);
+        nextButton.addEventListener('click', nextSlide);
+    }
+    
+    // Configurar o modal para as imagens do carrossel
+    setupCarouselModal();
+}
+
+// Funções de navegação do carrossel
+function nextSlide() {
+    goToSlide((currentSlideIndex + 1) % carouselSlides.length);
+    resetCarouselInterval();
+}
+
+function prevSlide() {
+    goToSlide((currentSlideIndex - 1 + carouselSlides.length) % carouselSlides.length);
+    resetCarouselInterval();
+}
+
+function goToSlide(index) {
+    if (carouselSlides.length === 0) return;
+    
+    currentSlideIndex = index;
+    const slidesContainer = document.querySelector('.carousel-slides');
+    if (slidesContainer) {
+        slidesContainer.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+    }
+    
+    // Atualizar indicadores
+    document.querySelectorAll('.carousel-indicator').forEach((indicator, i) => {
+        if (i === currentSlideIndex) {
+            indicator.classList.add('active');
+        } else {
+            indicator.classList.remove('active');
+        }
+    });
+    
+    updateCaption();
+}
+
+function updateCaption() {
+    const captionElement = document.querySelector('.carousel-caption');
+    if (captionElement && carouselSlides.length > 0) {
+        captionElement.textContent = carouselSlides[currentSlideIndex].legenda;
+    }
+}
+
+// Controle automático do carrossel
+function startCarousel() {
+    if (carouselSlides.length > 1) {
+        clearInterval(carouselInterval);
+        carouselInterval = setInterval(nextSlide, 5000); // Muda a cada 5 segundos
+    }
+}
+
+function resetCarouselInterval() {
+    clearInterval(carouselInterval);
+    startCarousel();
+}
+
+function setupCarouselModal() {
+    const modal = document.getElementById('carousel-modal');
+    const modalImg = document.getElementById('carousel-modal-img');
+    const closeModal = document.querySelector('.close-carousel-modal');
+    const carouselImages = document.querySelectorAll('.carousel-slide img');
+
+    carouselImages.forEach(img => {
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', () => {
+            modalImg.src = img.src;
+            modalImg.alt = img.alt;
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    closeModal.addEventListener('click', () => {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+    });
+}
 
 window.removeFromCart = removeFromCart;
