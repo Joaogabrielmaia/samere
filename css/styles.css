@@ -31,7 +31,7 @@ html, body {
   width: 100%;
   margin-left: calc(-50vw + 50%);
   background-color: var(--dark);
-  padding: 30px 0; /* Aumente este valor para mais espaço */
+  padding: 55px 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -127,11 +127,12 @@ html, body {
 
 .instagram-section a {
     display: inline-flex;
+    font-size: 1rem;
     align-items: center;
     gap: 10px;
     color: var(--primary);
     text-decoration: none;
-    font-weight: bold;
+    font-weight: normal;
     transition: all 0.3s;
 }
 
@@ -149,45 +150,6 @@ html, body {
 
 .instagram-section a:hover svg {
     stroke: white;
-}
-
-/* Navbar Social */
-.navbar-social {
-    margin-left: auto;
-    padding-right: 20px;
-}
-
-.navbar-social a {
-    color: var(--primary);
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(158, 231, 255, 0.1);
-}
-
-.navbar-social a:hover {
-    background: rgba(158, 231, 255, 0.3);
-    transform: scale(1.1);
-}
-
-.navbar-social svg {
-    width: 20px;
-    height: 20px;
-}
-
-@media (max-width: 768px) {
-    .navbar-social {
-        padding-right: 10px;
-    }
-    
-    .navbar-social a {
-        width: 36px;
-        height: 36px;
-    }
 }
 
 /* Seção de Produtos */
@@ -685,7 +647,7 @@ html, body {
 .carousel-section h2 {
     color: var(--primary);
     margin-bottom: 20px;
-    font-size: 1.8rem;
+    font-size: 1.7rem;
     text-shadow: 0 0 10px rgba(158, 231, 255, 0.5);
     padding: 0 15px;
 }
@@ -1039,7 +1001,7 @@ html, body {
   }
   
   .video-section p {
-    font-size: 1rem;
+    font-size: 0.84rem;
   }
   
   .video-container iframe {
@@ -1047,7 +1009,7 @@ html, body {
   }
   
   .products-section h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
   
   .products-section h2 {
