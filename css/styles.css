@@ -647,7 +647,7 @@ html, body {
 .carousel-section h2 {
     color: var(--primary);
     margin-bottom: 20px;
-    font-size: 1.7rem;
+    font-size: 1.45rem;
     text-shadow: 0 0 10px rgba(158, 231, 255, 0.5);
     padding: 0 15px;
 }
