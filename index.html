@@ -58,33 +58,32 @@
 
 
     <section class="products-section">
-        <h1>CATÁLOGO DE PRODUTOS</h1>
+    <h1>CATÁLOGO DE PRODUTOS</h1>
 
-
-        <div class="filters-container">
-            <div class="filter-group">
-                <label for="malha-filter">Filtrar por Malha:</label>
-                <select id="malha-filter" class="filter-select">
-                    <option value="all">Todas as Malhas</option>
-                    <option value="algodao">100% Algodão</option>
-                    <option value="pima">Cotton Pima (Peruana)</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label for="search-filter">Pesquisar Marca:</label>
-                <input type="text" id="search-filter" class="search-input" placeholder="Digite o nome da marca...">
-            </div>
+    <div class="filters-container">
+        <div class="filter-group">
+            <label for="malha-filter">Filtrar por Malha:</label>
+            <select id="malha-filter" class="filter-select">
+                <option value="all">Todas as Malhas</option>
+            </select>
         </div>
 
+        <div class="filter-group">
+            <label for="search-filter">Pesquisar Produto:</label>
+            <input type="text" id="search-filter" class="search-input" placeholder="Digite o nome do produto...">
+        </div>
+    </div>
 
+    <div id="fixed-sections-container">
         <h2 id="algodao-section">Malha 100% Algodão 40.1 Penteada Menegotti</h2>
         <div id="algodao-container" class="cards-container"></div>
 
-
         <h2 id="pima-section">Malha Cotton Pima 40.1 Com Elastano (Peruana)</h2>
         <div id="pima-container" class="cards-container"></div>
-    </section>
+    </div>
+
+    <div id="dynamic-sections-container"></div>
+</section>
 
 
     <footer class="footer">
@@ -161,8 +160,6 @@
         Fechar Tela Cheia
     </button>
 
-
-    <!-- Modal para imagem do carrossel -->
 <div id="carousel-modal" class="carousel-modal">
     <div class="carousel-modal-content">
         <span class="close-carousel-modal">&times;</span>

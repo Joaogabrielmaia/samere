@@ -61,7 +61,6 @@ html, body {
   filter: drop-shadow(0 0 5px var(--primary));
 }
 
-/* Seção do Vídeo */
 .video-section {
   padding: 80px 20px;
   text-align: center;
@@ -113,7 +112,6 @@ html, body {
   border-radius: 5px;
 }
 
-/* Instagram Section */
 .instagram-section {
     margin-top: 30px;
     text-align: center;
@@ -152,7 +150,6 @@ html, body {
     stroke: white;
 }
 
-/* Seção de Produtos */
 .products-section {
   padding: 60px 0;
   max-width: 1200px;
@@ -176,7 +173,6 @@ html, body {
   border-bottom: 2px solid var(--secondary);
 }
 
-/* Filtros */
 .filters-container {
   max-width: 100%;
   margin: 0 auto 40px;
@@ -229,7 +225,6 @@ html, body {
   box-shadow: 0 0 0 2px rgba(158, 231, 255, 0.3);
 }
 
-/* Cards de Produtos */
 .cards-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -332,7 +327,6 @@ html, body {
   color: var(--dark);
 }
 
-/* Footer */
 .footer {
   text-align: center;
   padding: 30px 20px;
@@ -577,7 +571,6 @@ html, body {
   fill: white;
 }
 
-/* Modal de Produto */
 #product-modal {
   position: fixed;
   top: 0;
@@ -631,7 +624,6 @@ html, body {
   gap: 20px;
 }
 
-/* Seção do Carrossel - Estilização Atualizada */
 .carousel-section {
     padding: 30px 15px;
     text-align: center;
@@ -664,7 +656,7 @@ html, body {
 .carousel-slides {
     display: flex;
     transition: transform 0.5s ease-in-out;
-    height: 300px; /* Altura reduzida para mobile */
+    height: 300px;
 }
 
 .carousel-slide {
@@ -673,14 +665,14 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 15px; /* Adiciona espaçamento nas laterais */
+    padding: 0 15px;
 }
 
 .carousel-slide img {
     width: auto;
     height: 100%;
     max-width: 100%;
-    object-fit: contain; /* Garante que a imagem inteira seja mostrada */
+    object-fit: contain;
     display: block;
     border-radius: 8px;
     border: 1px solid var(--gray);
@@ -750,7 +742,6 @@ html, body {
     transform: scale(1.2);
 }
 
-/* Modal do Carrossel */
 .carousel-modal {
     display: none;
     position: fixed;
@@ -787,6 +778,31 @@ html, body {
     color: var(--primary);
     font-size: 2rem;
     cursor: pointer;
+}
+
+#dynamic-sections-container {
+    margin-top: 40px;
+}
+
+#dynamic-sections-container h2 {
+    text-align: center;
+    font-size: 2rem;
+    margin: 40px 0 20px;
+    color: var(--primary);
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--secondary);
+}
+
+.filter-select option {
+    background-color: var(--dark);
+    color: var(--light);
+}
+
+@media (max-width: 768px) {
+    #dynamic-sections-container h2 {
+        font-size: 1.5rem;
+        margin-inline: 15px;
+    }
 }
 
 @media (min-width: 768px) {
@@ -957,7 +973,6 @@ html, body {
   color: var(--dark);
 }
 
-/* Botão de voltar ao topo */
 #back-to-top {
   position: fixed;
   bottom: 30px;
@@ -1112,7 +1127,6 @@ html, body {
 
 }
 
-/* Floating t-shirts background */
 .floating-tshirt {
   position: fixed;
   width: 150px;

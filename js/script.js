@@ -121,148 +121,261 @@ async function checkForUpdates() {
 }
 
 async function loadProducts() {
-  try {
-    const url = CACHE_BUSTING ? `${csvUrl}&t=${Date.now()}` : csvUrl;
-    
-    const response = await fetch(url, {
-      cache: 'no-cache'
-    });
-    
-    if (!response.ok) {
-      throw new Error('Erro ao carregar os dados');
-    }
-    
-    lastETag = response.headers.get('ETag');
-    lastModified = response.headers.get('Last-Modified');
-    
-    const csvData = await response.text();
-    const newProducts = csvToJson(csvData);
+    try {
+        const url = CACHE_BUSTING ? `${csvUrl}&t=${Date.now()}` : csvUrl;
+        
+        const response = await fetch(url, {
+            cache: 'no-cache'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar os dados');
+        }
+        
+        lastETag = response.headers.get('ETag');
+        lastModified = response.headers.get('Last-Modified');
+        
+        const csvData = await response.text();
+        const newProducts = csvToJson(csvData);
 
-    if (JSON.stringify(newProducts) !== JSON.stringify(allProducts)) {
-      allProducts = newProducts;
-      console.log('Produtos atualizados:', allProducts);
-      
-      allProducts.sort((a, b) => a.nome.localeCompare(b.nome));
-      
-      algodaoContainer.innerHTML = '';
-      pimaContainer.innerHTML = '';
-      
-      allProducts.forEach((item) => {
-        createProductCard(item);
-      });
+        if (JSON.stringify(newProducts) !== JSON.stringify(allProducts)) {
+            allProducts = newProducts;
+            console.log('Produtos atualizados:', allProducts);
+            
+            allProducts.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            algodaoContainer.innerHTML = '';
+            pimaContainer.innerHTML = '';
+            document.getElementById('dynamic-sections-container').innerHTML = '';
+
+            const productsByMalha = groupProductsByMalha(allProducts);
+
+            renderMalhaSections(productsByMalha);
+
+            updateMalhaFilter(productsByMalha);
+        }
+        
+        updateCart();
+    } catch (error) {
+        console.error("Erro ao carregar os dados:", error);
+        showError("Erro ao carregar produtos. Por favor, recarregue a página.");
     }
-    
-    updateCart();
-  } catch (error) {
-    console.error("Erro ao carregar os dados:", error);
-    showError("Erro ao carregar produtos. Por favor, recarregue a página.");
-  }
 }
 
-function createProductCard(item) {
-  if (!item.nome || !item.malha) {
-    console.warn('Item inválido, ignorando:', item);
-    return;
-  }
+function groupProductsByMalha(products) {
+    const groups = {
+        "100% algodão": [],
+        "cotton pima": [],
+    };
 
-  const card = document.createElement("div");
-  card.classList.add("card");
-  
-  const isPima = item.malha.toLowerCase().includes("pima");
-  card.dataset.malha = isPima ? "pima" : "algodao";
-  card.dataset.id = item.id || Math.random().toString(36).substr(2, 9);
-
-  let cores = [];
-  if (Array.isArray(item.cor)) {
-    cores = item.cor;
-  } else if (item.cor) {
-    cores = item.cor.split(',').map(c => c.trim()).filter(c => c !== '');
-  }
-  if (cores.length === 0) cores = ['Não especificado'];
-  
-  let tamanhos = [];
-  if (Array.isArray(item.tamanho)) {
-    tamanhos = item.tamanho;
-  } else if (item.tamanho) {
-    tamanhos = item.tamanho.split(',').map(t => t.trim()).filter(t => t !== '');
-  }
-  if (tamanhos.length === 0) tamanhos = ['Único'];
-
-  const imagemPrincipal = item.imagem || 'https://placehold.co/300x400?text=Imagem+Indisponível';
-
-  card.innerHTML = `
-    <div class="image-container">
-      <img src="${imagemPrincipal}" alt="${item.nome}" loading="lazy" class="product-image"
-           onerror="this.src='https://placehold.co/300x400?text=Imagem+Indisponível'">
-    </div>
-    <h3>${formatText(item.nome)}</h3>
-  `;
-
-  const selectContainer = document.createElement("div");
-  selectContainer.classList.add("select-container");
-
-  const corSelect = document.createElement("select");
-  corSelect.classList.add("product-select");
-  cores.forEach((cor) => {
-    const option = document.createElement("option");
-    option.value = cor;
-    option.textContent = formatText(cor);
-    corSelect.appendChild(option);
-  });
-
-  const tamanhoSelect = document.createElement("select");
-  tamanhoSelect.classList.add("product-select");
-  tamanhos.forEach((tam) => {
-    const option = document.createElement("option");
-    option.value = tam;
-    option.textContent = tam.toUpperCase();
-    tamanhoSelect.appendChild(option);
-  });
-
-  const labelCor = document.createElement("label");
-  labelCor.textContent = "Cor: ";
-  labelCor.appendChild(corSelect);
-
-  const labelTamanho = document.createElement("label");
-  labelTamanho.textContent = "Tamanho: ";
-  labelTamanho.appendChild(tamanhoSelect);
-
-  selectContainer.appendChild(labelCor);
-  selectContainer.appendChild(labelTamanho);
-  card.appendChild(selectContainer);
-
-  const addButton = document.createElement("button");
-  addButton.classList.add("add-to-cart");
-  addButton.textContent = "Adicionar ao Carrinho";
-  addButton.type = "button";
-
-  addButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart({
-      id: card.dataset.id,
-      nome: item.nome,
-      cor: corSelect.value,
-      tamanho: tamanhoSelect.value,
-      imagem: imagemPrincipal,
-      malha: isPima ? "Cotton Pima" : "100% Algodão"
+    const malhaToSectionId = {
+        "100% algodão": "algodao",
+        "cotton pima": "pima"
+    };
+    
+    products.forEach(product => {
+        const malha = product.malha?.toLowerCase() || '';
+        
+        if (malha.includes('algodão') || malha.includes('algodao')) {
+            groups["100% algodão"].push(product);
+        } else if (malha.includes('pima')) {
+            groups["cotton pima"].push(product);
+        } else if (malha) {
+            if (!groups[malha]) {
+                groups[malha] = [];
+                malhaToSectionId[malha] = malha.replace(/\s+/g, '-').toLowerCase();
+            }
+            groups[malha].push(product);
+        }
     });
-  });
+    
+    return { groups, malhaToSectionId };
+}
 
-  card.appendChild(addButton);
+function renderMalhaSections({ groups, malhaToSectionId }) {
+    renderMalhaSection("100% algodão", groups["100% algodão"], "algodao-container");
+    renderMalhaSection("cotton pima", groups["cotton pima"], "pima-container");
 
-  const productImage = card.querySelector(".product-image");
-  productImage.style.cursor = "pointer";
-  productImage.addEventListener("click", (e) => {
-    e.stopPropagation();
-    openProductModal(item);
-  });
+    const dynamicContainer = document.getElementById('dynamic-sections-container');
+    
+    for (const [malha, products] of Object.entries(groups)) {
+        if (malha === "100% algodão" || malha === "cotton pima") continue;
+        
+        if (products.length > 0) {
+            const sectionId = `${malhaToSectionId[malha]}-section`;
+            const containerId = `${malhaToSectionId[malha]}-container`;
 
-  if (isPima) {
-    pimaContainer.appendChild(card);
-  } else {
-    algodaoContainer.appendChild(card);
-  }
+            const sectionHTML = `
+                <h2 id="${sectionId}" data-malha="${malhaToSectionId[malha]}">${products[0].marca || formatText(malha)}</h2>
+                <div id="${containerId}" class="cards-container" data-malha="${malhaToSectionId[malha]}"></div>
+            `;
+            
+            dynamicContainer.insertAdjacentHTML('beforeend', sectionHTML);
+
+            renderMalhaSection(malha, products, containerId);
+        }
+    }
+}
+
+function renderMalhaSection(malha, products, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    products.forEach(product => {
+        createProductCard(product, container);
+    });
+}
+
+function updateMalhaFilter({ groups }) {
+    const malhaFilter = document.getElementById('malha-filter');
+
+    malhaFilter.innerHTML = '<option value="all">Todas as Malhas</option>';
+
+    for (const malha of Object.keys(groups)) {
+        if (groups[malha].length > 0) {
+            const option = document.createElement('option');
+            option.value = malha === "100% algodão" ? "algodao" : 
+                           malha === "cotton pima" ? "pima" : 
+                           malha.replace(/\s+/g, '-').toLowerCase();
+            option.textContent = malha === "100% algodão" ? "100% Algodão" : 
+                                malha === "cotton pima" ? "Cotton Pima" : 
+                                groups[malha][0].marca || formatText(malha);
+            malhaFilter.appendChild(option);
+        }
+    }
+}
+
+function createProductCard(item, container = null) {
+    if (!item.nome || !item.malha) {
+        console.warn('Item inválido, ignorando:', item);
+        return;
+    }
+
+    const card = document.createElement("div");
+    card.classList.add("card");
+
+    const malha = item.malha.toLowerCase();
+    let malhaType = "dynamic";
+    let malhaDisplayName = formatText(item.malha);
+    
+    if (malha.includes("algodão") || malha.includes("algodao")) {
+        malhaType = "algodao";
+        malhaDisplayName = "100% Algodão";
+    } else if (malha.includes("pima")) {
+        malhaType = "pima";
+        malhaDisplayName = "Cotton Pima";
+    } else {
+        malhaType = malha.replace(/\s+/g, '-').toLowerCase();
+        malhaDisplayName = item.marca || formatText(item.malha);
+    }
+    
+    card.dataset.malha = malhaType;
+    card.dataset.id = item.id || Math.random().toString(36).substr(2, 9);
+
+    let cores = [];
+    if (Array.isArray(item.cor)) {
+        cores = item.cor;
+    } else if (item.cor) {
+        cores = item.cor.split(',').map(c => c.trim()).filter(c => c !== '');
+    }
+    if (cores.length === 0) cores = ['Não especificado'];
+
+    let tamanhos = [];
+    if (Array.isArray(item.tamanho)) {
+        tamanhos = item.tamanho;
+    } else if (item.tamanho) {
+        tamanhos = item.tamanho.split(',').map(t => t.trim()).filter(t => t !== '');
+    }
+    if (tamanhos.length === 0) tamanhos = ['Único'];
+
+    const imagemPrincipal = item.imagem || 'https://placehold.co/300x400?text=Imagem+Indisponível';
+
+    card.innerHTML = `
+        <div class="image-container">
+            <img src="${imagemPrincipal}" alt="${item.nome}" loading="lazy" class="product-image"
+                 onerror="this.src='https://placehold.co/300x400?text=Imagem+Indisponível'">
+        </div>
+        <div class="card-content">
+            <h3>${formatText(item.nome)}</h3>
+            <p class="product-malha">${malhaDisplayName}</p>
+            <div class="select-container">
+                <label>
+                    Cor:
+                    <select class="product-select color-select">
+                        ${cores.map(cor => `<option value="${cor}">${formatText(cor)}</option>`).join('')}
+                    </select>
+                </label>
+                <label>
+                    Tamanho:
+                    <select class="product-select size-select">
+                        ${tamanhos.map(tam => `<option value="${tam}">${tam.toUpperCase()}</option>`).join('')}
+                    </select>
+                </label>
+            </div>
+            <button class="add-to-cart" type="button">Adicionar ao Carrinho</button>
+        </div>
+    `;
+
+    const productImage = card.querySelector(".product-image");
+    productImage.style.cursor = "pointer";
+    productImage.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openProductModal(item);
+    });
+
+    const addButton = card.querySelector(".add-to-cart");
+    addButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const corSelect = card.querySelector(".color-select");
+        const sizeSelect = card.querySelector(".size-select");
+        
+        addToCart({
+            id: card.dataset.id,
+            nome: item.nome,
+            cor: corSelect.value,
+            tamanho: sizeSelect.value,
+            imagem: imagemPrincipal,
+            malha: malhaDisplayName
+        });
+    });
+
+    if (container) {
+        container.appendChild(card);
+    } else if (malhaType === "pima") {
+        pimaContainer.appendChild(card);
+    } else if (malhaType === "algodao") {
+        algodaoContainer.appendChild(card);
+    } else {
+        const dynamicContainer = document.querySelector(`.cards-container[data-malha="${malhaType}"]`);
+        if (dynamicContainer) {
+            dynamicContainer.appendChild(card);
+        } else {
+            const dynamicSectionsContainer = document.getElementById('dynamic-sections-container');
+            if (dynamicSectionsContainer) {
+                const sectionId = `${malhaType}-section`;
+                const containerId = `${malhaType}-container`;
+                
+                if (!document.getElementById(sectionId)) {
+                    const sectionHTML = `
+                        <h2 id="${sectionId}" data-malha="${malhaType}">${malhaDisplayName}</h2>
+                        <div id="${containerId}" class="cards-container" data-malha="${malhaType}"></div>
+                    `;
+                    dynamicSectionsContainer.insertAdjacentHTML('beforeend', sectionHTML);
+                }
+
+                const newContainer = document.getElementById(containerId);
+                if (newContainer) {
+                    newContainer.appendChild(card);
+                }
+            }
+        }
+    }
+
+    return card;
 }
 
 function openProductModal(product) {
@@ -674,36 +787,48 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedMalha = malhaFilter.value;
     const searchTerm = searchFilter.value.toLowerCase();
 
-    document.getElementById('algodao-section').style.display = 'none';
-    document.getElementById('algodao-container').style.display = 'none';
-    document.getElementById('pima-section').style.display = 'none';
-    document.getElementById('pima-container').style.display = 'none';
+    document.querySelectorAll('#fixed-sections-container h2, #dynamic-sections-container h2').forEach(h2 => {
+        h2.style.display = 'none';
+    });
+    document.querySelectorAll('.cards-container').forEach(container => {
+        container.style.display = 'none';
+    });
 
     if (selectedMalha === 'all') {
-      document.getElementById('algodao-section').style.display = 'block';
-      document.getElementById('algodao-container').style.display = 'grid';
-      document.getElementById('pima-section').style.display = 'block';
-      document.getElementById('pima-container').style.display = 'grid';
-    } else if (selectedMalha === 'algodao') {
-      document.getElementById('algodao-section').style.display = 'block';
-      document.getElementById('algodao-container').style.display = 'grid';
-    } else if (selectedMalha === 'pima') {
-      document.getElementById('pima-section').style.display = 'block';
-      document.getElementById('pima-container').style.display = 'grid';
+        document.querySelectorAll('#fixed-sections-container h2, #dynamic-sections-container h2').forEach(h2 => {
+            h2.style.display = 'block';
+        });
+        document.querySelectorAll('.cards-container').forEach(container => {
+            container.style.display = 'grid';
+        });
+    } else {
+        const section = document.querySelector(`h2[data-malha="${selectedMalha}"]`);
+        const container = document.querySelector(`.cards-container[data-malha="${selectedMalha}"]`);
+        
+        if (section && container) {
+            section.style.display = 'block';
+            container.style.display = 'grid';
+        }
     }
 
     const allCards = document.querySelectorAll('.card');
     allCards.forEach(card => {
-      const cardTitle = card.querySelector('h3').textContent.toLowerCase();
-      const cardVisible = cardTitle.includes(searchTerm);
-      card.style.display = cardVisible ? 'block' : 'none';
-    });
+        const cardTitle = card.querySelector('h3').textContent.toLowerCase();
+        const cardVisible = cardTitle.includes(searchTerm);
+        card.style.display = cardVisible ? 'flex' : 'none';
 
-    if (searchTerm) {
-      document.getElementById('algodao-section').style.display = 'block';
-      document.getElementById('pima-section').style.display = 'block';
-    }
-  }
+        if (searchTerm && cardVisible) {
+            const malhaType = card.dataset.malha;
+            const section = document.querySelector(`h2[data-malha="${malhaType}"]`);
+            const container = document.querySelector(`.cards-container[data-malha="${malhaType}"]`);
+            
+            if (section && container) {
+                section.style.display = 'block';
+                container.style.display = 'grid';
+            }
+        }
+    });
+}
 
   malhaFilter.addEventListener('change', () => {
     filterProducts();
@@ -719,10 +844,8 @@ document.addEventListener('DOMContentLoaded', function() {
   loadProducts();
   startPolling();
 
-  // Inicializar o carrossel
     loadCarouselImages();
 
-    // Configurar eventos de hover para pausar o carrossel
     const carousel = document.querySelector('.carousel-container');
     if (carousel) {
         carousel.addEventListener('mouseenter', () => {
@@ -735,7 +858,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Função para carregar as imagens do carrossel
 async function loadCarouselImages() {
     try {
         const response = await fetch(carouselCSVUrl);
@@ -746,8 +868,7 @@ async function loadCarouselImages() {
             console.warn('Planilha do carrossel vazia ou com formato incorreto');
             return;
         }
-        
-        // Processar o CSV
+
         carouselSlides = [];
         const headers = lines[0].split(',');
         
@@ -776,7 +897,6 @@ async function loadCarouselImages() {
     }
 }
 
-// Inicializar o carrossel
 function initCarousel() {
     const slidesContainer = document.querySelector('.carousel-slides');
     const indicatorsContainer = document.querySelector('.carousel-indicators');
@@ -790,7 +910,6 @@ function initCarousel() {
     indicatorsContainer.innerHTML = '';
     
     carouselSlides.forEach((slide, index) => {
-        // Criar slide
         const slideElement = document.createElement('div');
         slideElement.classList.add('carousel-slide');
         slideElement.dataset.index = index;
@@ -805,8 +924,7 @@ function initCarousel() {
         
         slideElement.appendChild(img);
         slidesContainer.appendChild(slideElement);
-        
-        // Criar indicador
+
         const indicator = document.createElement('div');
         indicator.classList.add('carousel-indicator');
         indicator.dataset.index = index;
@@ -818,11 +936,9 @@ function initCarousel() {
         
         indicatorsContainer.appendChild(indicator);
     });
-    
-    // Atualizar legenda
+
     updateCaption();
-    
-    // Event listeners para os botões
+
     const prevButton = document.querySelector('.carousel-button.prev');
     const nextButton = document.querySelector('.carousel-button.next');
     
@@ -830,12 +946,10 @@ function initCarousel() {
         prevButton.addEventListener('click', prevSlide);
         nextButton.addEventListener('click', nextSlide);
     }
-    
-    // Configurar o modal para as imagens do carrossel
+
     setupCarouselModal();
 }
 
-// Funções de navegação do carrossel
 function nextSlide() {
     goToSlide((currentSlideIndex + 1) % carouselSlides.length);
     resetCarouselInterval();
@@ -855,7 +969,6 @@ function goToSlide(index) {
         slidesContainer.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
     }
     
-    // Atualizar indicadores
     document.querySelectorAll('.carousel-indicator').forEach((indicator, i) => {
         if (i === currentSlideIndex) {
             indicator.classList.add('active');
@@ -872,19 +985,6 @@ function updateCaption() {
     if (captionElement && carouselSlides.length > 0) {
         captionElement.textContent = carouselSlides[currentSlideIndex].legenda;
     }
-}
-
-// Controle automático do carrossel
-function startCarousel() {
-    if (carouselSlides.length > 1) {
-        clearInterval(carouselInterval);
-        carouselInterval = setInterval(nextSlide, 5000); // Muda a cada 5 segundos
-    }
-}
-
-function resetCarouselInterval() {
-    clearInterval(carouselInterval);
-    startCarousel();
 }
 
 function setupCarouselModal() {
