@@ -987,6 +987,18 @@ function updateCaption() {
     }
 }
 
+function startCarousel() {
+    if (carouselSlides.length > 1) {
+        clearInterval(carouselInterval);
+        carouselInterval = setInterval(nextSlide, 5000); // Muda a cada 5 segundos
+    }
+}
+
+function resetCarouselInterval() {
+    clearInterval(carouselInterval);
+    startCarousel();
+}
+
 function setupCarouselModal() {
     const modal = document.getElementById('carousel-modal');
     const modalImg = document.getElementById('carousel-modal-img');
