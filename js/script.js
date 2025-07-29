@@ -32,6 +32,17 @@ let lastETag = null;
 let lastModified = null;
 let pollingIntervalId = null;
 
+function formatMalhaText(malha, forTitle = false) {
+  if (!malha) return "";
+  
+  if (forTitle) {
+    return formatText(malha);
+  }
+  
+  const words = malha.split(' ').slice(0, 2);
+  return formatText(words.join(' '));
+}
+
 function formatText(text) {
   if (!text) return "";
   return text
@@ -206,7 +217,7 @@ function renderMalhaSections({ groups, malhaToSectionId }) {
             const containerId = `${malhaToSectionId[malha]}-container`;
 
             const sectionHTML = `
-                <h2 id="${sectionId}" data-malha="${malhaToSectionId[malha]}">${products[0].marca || formatText(malha)}</h2>
+                <h2 id="${sectionId}" data-malha="${malhaToSectionId[malha]}">${formatMalhaText(malha, true)}</h2>
                 <div id="${containerId}" class="cards-container" data-malha="${malhaToSectionId[malha]}"></div>
             `;
             
@@ -241,7 +252,7 @@ function updateMalhaFilter({ groups }) {
                            malha.replace(/\s+/g, '-').toLowerCase();
             option.textContent = malha === "100% algodão" ? "100% Algodão" : 
                                 malha === "cotton pima" ? "Cotton Pima" : 
-                                groups[malha][0].marca || formatText(malha);
+                                formatMalhaText(groups[malha][0].malha, true);
             malhaFilter.appendChild(option);
         }
     }
@@ -257,19 +268,8 @@ function createProductCard(item, container = null) {
     card.classList.add("card");
 
     const malha = item.malha.toLowerCase();
-    let malhaType = "dynamic";
-    let malhaDisplayName = formatText(item.malha);
-    
-    if (malha.includes("algodão") || malha.includes("algodao")) {
-        malhaType = "algodao";
-        malhaDisplayName = "100% Algodão";
-    } else if (malha.includes("pima")) {
-        malhaType = "pima";
-        malhaDisplayName = "Cotton Pima";
-    } else {
-        malhaType = malha.replace(/\s+/g, '-').toLowerCase();
-        malhaDisplayName = item.marca || formatText(item.malha);
-    }
+    let malhaType = malha.replace(/\s+/g, '-').toLowerCase();
+    let malhaDisplayName = formatMalhaText(item.malha);
     
     card.dataset.malha = malhaType;
     card.dataset.id = item.id || Math.random().toString(36).substr(2, 9);
@@ -339,7 +339,7 @@ function createProductCard(item, container = null) {
             cor: corSelect.value,
             tamanho: sizeSelect.value,
             imagem: imagemPrincipal,
-            malha: malhaDisplayName
+            malha: item.malha
         });
     });
 
@@ -361,7 +361,7 @@ function createProductCard(item, container = null) {
                 
                 if (!document.getElementById(sectionId)) {
                     const sectionHTML = `
-                        <h2 id="${sectionId}" data-malha="${malhaType}">${malhaDisplayName}</h2>
+                        <h2 id="${sectionId}" data-malha="${malhaType}">${formatMalhaText(malha, true)}</h2>
                         <div id="${containerId}" class="cards-container" data-malha="${malhaType}"></div>
                     `;
                     dynamicSectionsContainer.insertAdjacentHTML('beforeend', sectionHTML);
@@ -482,6 +482,7 @@ function addToCart(item) {
   } else {
     const newItem = {
       ...item,
+      malha: formatMalhaText(item.malha),
       quantidade: 1,
     };
     cart.push(newItem);
@@ -509,7 +510,7 @@ function updateCart() {
     cartItem.classList.add("cart-item");
     cartItem.dataset.index = index;
 
-    const malhaText = item.malha === "Cotton Pima" ? "Cotton Pima" : "100% Algodão";
+    const malhaText = item.malha || "Malha não especificada";
 
     cartItem.innerHTML = `
       <div class="cart-item-image">
@@ -575,24 +576,11 @@ function sendWhatsAppOrder() {
 
   let message = "Olá, gostaria de fazer um pedido com os seguintes itens:\n\n";
 
-  const malhaCounts = {
-    "algodao": 0,
-    "pima": 0
-  };
-
   cart.forEach((item) => {
-    const malhaText = item.malha.toLowerCase().includes("pima") ? "Cotton Pima" : "100% Algodão";
+    const malhaText = item.malha || "Malha não especificada";
     message += `${formatText(item.nome)} (${formatText(item.cor)}, ${item.tamanho.toUpperCase()}) - ${malhaText} - Quantidade: ${item.quantidade || 1}\n`;
-
-    if (malhaText === "100% Algodão") {
-      malhaCounts.algodao += item.quantidade || 1;
-    } else {
-      malhaCounts.pima += item.quantidade || 1;
-    }
   });
 
-  message += `\nAlgodão: ${malhaCounts.algodao}`;
-  message += `\nCotton Pima: ${malhaCounts.pima}`;
   message += `\nTotal de itens: ${totalItems}`;
 
   const encodedMessage = encodeURIComponent(message);
@@ -733,8 +721,7 @@ closeModal.addEventListener("click", () => {
 modalAddToCart.addEventListener("click", () => {
   if (!currentProduct) return;
 
-  const card = document.querySelector(`.card[data-id="${currentProduct.id}"]`);
-  const malhaType = card ? card.dataset.malha === "pima" ? "Cotton Pima" : "100% Algodão" : currentProduct.malha;
+  const malhaType = currentProduct.malha || "Malha não especificada";
 
   addToCart({
     id: currentProduct.id,
@@ -990,7 +977,7 @@ function updateCaption() {
 function startCarousel() {
     if (carouselSlides.length > 1) {
         clearInterval(carouselInterval);
-        carouselInterval = setInterval(nextSlide, 5000); // Muda a cada 5 segundos
+        carouselInterval = setInterval(nextSlide, 5000);
     }
 }
 
