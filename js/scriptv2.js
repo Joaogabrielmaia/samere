@@ -581,6 +581,32 @@ function sendWhatsAppOrder() {
     message += `${formatText(item.nome)} (${formatText(item.cor)}, ${item.tamanho.toUpperCase()}) - ${malhaText} - Quantidade: ${item.quantidade || 1}\n`;
   });
 
+  message += `\n`;
+
+  const contagemMalhas = {};
+
+  contagemMalhas["100% Algodão"] = 0;
+  contagemMalhas["Cotton Pima"] = 0;
+
+  cart.forEach((item) => {
+    const malha = item.malha || "Outros";
+    
+    if (malha.toLowerCase().includes('algodão') || malha.toLowerCase().includes('algodao')) {
+      contagemMalhas["100% Algodão"] += item.quantidade || 1;
+    } else if (malha.toLowerCase().includes('pima')) {
+      contagemMalhas["Cotton Pima"] += item.quantidade || 1;
+    } else {
+      if (!contagemMalhas[malha]) {
+        contagemMalhas[malha] = 0;
+      }
+      contagemMalhas[malha] += item.quantidade || 1;
+    }
+  });
+
+  for (const [malha, quantidade] of Object.entries(contagemMalhas)) {
+    message += `${malha}: ${quantidade}\n`;
+  }
+
   message += `\nTotal de itens: ${totalItems}`;
 
   const encodedMessage = encodeURIComponent(message);
