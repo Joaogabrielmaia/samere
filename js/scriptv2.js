@@ -10,7 +10,7 @@ console.log('Versão do script: 2.0.1');
 const POLLING_INTERVAL = 30000;
 const CACHE_BUSTING = true;
 
-const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTr9dMI_98ezu15FSOXwqpDbrbiChtVx0yZMp7qxw9zVBR6vWSKQld7XbcuT7YqgRCUvTUyVTT2Wy70/pub?gid=0&single=true&output=csv';
+const csvUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-1vTr9dMI_98ezu15FSOXwqpDbrbiChtVx0yZMp7qxw9zVBR6vWSKQld7XbcuT7YqgRCUvTUyVTT2Wy70/pub?gid=0&single=true&output=csv&t=${Date.now()}`;
 
 const carouselCSVUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTd8LhduYPeYKQCRed1GnaWtRsr_9Zp_94d6tXPdKUNdlptSJ6oolNDWwON16Xk2kn7ee18BDzg0biK/pub?gid=0&single=true&output=csv';
 let carouselSlides = [];
