@@ -1,3 +1,12 @@
+if (window.location.href.indexOf('localhost') > -1 || window.location.href.indexOf('192.168.') > -1) {
+  const scripts = document.getElementsByTagName('script');
+  for (let i = 0; i < scripts.length; i++) {
+    scripts[i].src = scripts[i].src.replace(/\?.*|$/, '?t=' + new Date().getTime());
+  }
+}
+
+console.log('Versão do script: 2.0.1');
+
 const POLLING_INTERVAL = 30000;
 const CACHE_BUSTING = true;
 
@@ -576,36 +585,53 @@ function sendWhatsAppOrder() {
 
   let message = "Olá, gostaria de fazer um pedido com os seguintes itens:\n\n";
 
+  // 1. Lista de itens do pedido
   cart.forEach((item) => {
-    const malhaText = item.malha || "Malha não especificada";
+    const malhaText = formatMalhaText(item.malha);
     message += `${formatText(item.nome)} (${formatText(item.cor)}, ${item.tamanho.toUpperCase()}) - ${malhaText} - Quantidade: ${item.quantidade || 1}\n`;
   });
 
   message += `\n`;
 
+  // 2. Função para extrair nome curto da malha (2 primeiras palavras)
+  const getMalhaShortName = (malha) => {
+    if (!malha) return "Outros";
+    const shortName = malha.split(' ').slice(0, 2).join(' ');
+    return formatText(shortName); // Formata com iniciais maiúsculas
+  };
+
+  // 3. Pegar TODAS as malhas/marcas disponíveis no catálogo
+  const allMalhas = [...new Set(allProducts.map(product => product.malha))];
+  
+  // 4. Contagem para as malhas no carrinho
   const contagemMalhas = {};
-
-  contagemMalhas["100% Algodão"] = 0;
-  contagemMalhas["Cotton Pima"] = 0;
-
+  
+  // Primeiro conta os itens do carrinho
   cart.forEach((item) => {
     const malha = item.malha || "Outros";
+    const malhaShort = getMalhaShortName(malha);
     
-    if (malha.toLowerCase().includes('algodão') || malha.toLowerCase().includes('algodao')) {
-      contagemMalhas["100% Algodão"] += item.quantidade || 1;
-    } else if (malha.toLowerCase().includes('pima')) {
-      contagemMalhas["Cotton Pima"] += item.quantidade || 1;
-    } else {
-      if (!contagemMalhas[malha]) {
-        contagemMalhas[malha] = 0;
-      }
-      contagemMalhas[malha] += item.quantidade || 1;
+    if (!contagemMalhas[malhaShort]) {
+      contagemMalhas[malhaShort] = 0;
+    }
+    contagemMalhas[malhaShort] += item.quantidade || 1;
+  });
+
+  // 5. Adicionar todas as malhas do catálogo (mesmo com zero)
+  allMalhas.forEach(malha => {
+    const malhaShort = getMalhaShortName(malha);
+    if (!contagemMalhas[malhaShort]) {
+      contagemMalhas[malhaShort] = 0;
     }
   });
 
-  for (const [malha, quantidade] of Object.entries(contagemMalhas)) {
-    message += `${malha}: ${quantidade}\n`;
-  }
+  // 6. Ordenar alfabeticamente
+  const malhasOrdenadas = Object.keys(contagemMalhas).sort();
+
+  // 7. Adicionar à mensagem
+  malhasOrdenadas.forEach(malha => {
+    message += `${malha}: ${contagemMalhas[malha]}\n`;
+  });
 
   message += `\nTotal de itens: ${totalItems}`;
 

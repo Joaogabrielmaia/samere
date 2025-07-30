@@ -12,13 +12,13 @@
 <body>
 
     <nav class="navbar">
-    <div class="navbar-container">
-        <div class="navbar-left"></div>
-        <div class="navbar-center">
-            <img src="img/logo.png" alt="Logo" class="logo">
+        <div class="navbar-container">
+            <div class="navbar-left"></div>
+            <div class="navbar-center">
+                <img src="img/logo.png" alt="Logo" class="logo">
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 
     <section class="video-section">
@@ -33,16 +33,17 @@
                 </video>
             </div>
         </div>
-<div class="instagram-section">
-    <a href="https://instagram.com/samere.atacado" target="_blank" rel="noopener noreferrer">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-        </svg>
-        INSTAGRAM OFICIAL: @samere.atacado
-    </a>
-</div>
+        <div class="instagram-section">
+            <a href="https://instagram.com/samere.atacado" target="_blank" rel="noopener noreferrer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+                INSTAGRAM OFICIAL: @samere.atacado
+            </a>
+        </div>
     </section>
 
     <section class="carousel-section">
@@ -58,32 +59,32 @@
 
 
     <section class="products-section">
-    <h1>CATÁLOGO DE PRODUTOS</h1>
+        <h1>CATÁLOGO DE PRODUTOS</h1>
 
-    <div class="filters-container">
-        <div class="filter-group">
-            <label for="malha-filter">Filtrar por Malha:</label>
-            <select id="malha-filter" class="filter-select">
-                <option value="all">Todas as Malhas</option>
-            </select>
+        <div class="filters-container">
+            <div class="filter-group">
+                <label for="malha-filter">Filtrar por Malha:</label>
+                <select id="malha-filter" class="filter-select">
+                    <option value="all">Todas as Malhas</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="search-filter">Pesquisar Produto:</label>
+                <input type="text" id="search-filter" class="search-input" placeholder="Digite o nome do produto...">
+            </div>
         </div>
 
-        <div class="filter-group">
-            <label for="search-filter">Pesquisar Produto:</label>
-            <input type="text" id="search-filter" class="search-input" placeholder="Digite o nome do produto...">
+        <div id="fixed-sections-container">
+            <h2 id="algodao-section">Malha 100% Algodão 40.1 Penteada Menegotti</h2>
+            <div id="algodao-container" class="cards-container"></div>
+
+            <h2 id="pima-section">Malha Cotton Pima 40.1 Com Elastano (Peruana)</h2>
+            <div id="pima-container" class="cards-container"></div>
         </div>
-    </div>
 
-    <div id="fixed-sections-container">
-        <h2 id="algodao-section">Malha 100% Algodão 40.1 Penteada Menegotti</h2>
-        <div id="algodao-container" class="cards-container"></div>
-
-        <h2 id="pima-section">Malha Cotton Pima 40.1 Com Elastano (Peruana)</h2>
-        <div id="pima-container" class="cards-container"></div>
-    </div>
-
-    <div id="dynamic-sections-container"></div>
-</section>
+        <div id="dynamic-sections-container"></div>
+    </section>
 
 
     <footer class="footer">
@@ -160,12 +161,12 @@
         Fechar Tela Cheia
     </button>
 
-<div id="carousel-modal" class="carousel-modal">
-    <div class="carousel-modal-content">
-        <span class="close-carousel-modal">&times;</span>
-        <img id="carousel-modal-img" class="carousel-modal-img" src="" alt="">
+    <div id="carousel-modal" class="carousel-modal">
+        <div class="carousel-modal-content">
+            <span class="close-carousel-modal">&times;</span>
+            <img id="carousel-modal-img" class="carousel-modal-img" src="" alt="">
+        </div>
     </div>
-</div>
 
     <div id="back-to-top" class="hidden">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -177,7 +178,9 @@
     <script src="js/scriptv2.js"></script>
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
+        document.write(`<script src="js/script.js?v=${new Date().getTime()}"><\/script>`);
     </script>
+
 </body>
 
 </html>
